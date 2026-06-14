@@ -1,0 +1,227 @@
+/* ============================================================
+   HAVEN — ONBOARDING + PAYWALL
+   Built only from tokens in haven-tokens.css. Lives inside .screen.
+   ============================================================ */
+
+/* ---------- shell ---------- */
+.ob{position:absolute;inset:0;display:flex;flex-direction:column;
+  background:var(--color-bg);color:var(--color-ink);font-family:var(--font-sans)}
+.ob-scroll{flex:1;overflow-y:auto;scrollbar-width:none;padding:6px 22px 8px}
+.ob-scroll::-webkit-scrollbar{display:none}
+.ob-foot{padding:12px 22px 24px}
+
+/* ---------- progress header ---------- */
+.ob-prog{display:flex;align-items:center;gap:13px;padding:6px 22px 6px}
+.ob-back{width:34px;height:34px;border-radius:11px;background:var(--color-chip);
+  display:grid;place-items:center;border:0;cursor:pointer;color:var(--color-ink);flex:none}
+.ob-back svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
+.ob-seg{flex:1;display:flex;gap:5px}
+.ob-seg i{flex:1;height:4px;border-radius:2px;background:var(--color-track);transition:background .3s}
+.ob-seg i.on{background:var(--color-accent)}
+.ob-step{font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--color-ink-faint);
+  flex:none;font-feature-settings:"tnum";width:38px;text-align:right}
+
+/* ---------- question head ---------- */
+.ob-h{padding:14px 0 4px}
+.ob-kicker{font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:.1em;
+  text-transform:uppercase;color:var(--color-accent);margin-bottom:11px}
+.ob-title{font-family:var(--font-serif);font-size:27px;font-weight:var(--weight-semibold);
+  letter-spacing:var(--tracking-tight);line-height:1.1;text-wrap:pretty;min-height:2.18em}
+.ob-sub{color:var(--color-ink-soft);font-size:var(--text-base);line-height:var(--leading-normal);
+  margin-top:10px;text-wrap:pretty}
+.ob-sub b{color:var(--color-ink);font-weight:var(--weight-semibold)}
+
+/* ---------- list options (single-select) ---------- */
+.ob-opts{margin-top:20px;display:flex;flex-direction:column;gap:9px}
+.ob-opt{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  padding:15px 16px;border-radius:var(--radius-lg);border:0;cursor:pointer;
+  background:var(--color-chip);color:var(--color-ink);font-family:inherit;
+  font-weight:var(--weight-semibold);font-size:14.5px;line-height:1.3;
+  transition:background .15s,color .15s}
+.ob-opt .ico{width:34px;height:34px;border-radius:10px;background:var(--color-surface);
+  display:grid;place-items:center;flex:none;color:var(--color-ink-soft);transition:background .15s,color .15s}
+.ob-opt .ico svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.ob-opt .lab{flex:1;min-width:0}
+.ob-opt .chk{width:23px;height:23px;border-radius:var(--radius-pill);border:2px solid var(--color-track);
+  flex:none;display:grid;place-items:center;transition:border-color .15s,background .15s}
+.ob-opt .chk svg{width:13px;height:13px;stroke:transparent;fill:none;stroke-width:2.6}
+.ob-opt.on{background:var(--color-ink);color:var(--color-bg)}
+.ob-opt.on .ico{background:rgba(239,106,32,.16);color:var(--color-accent)}
+.ob-opt.on .chk{border-color:var(--color-accent);background:var(--color-accent)}
+.ob-opt.on .chk svg{stroke:var(--p-orange-ink)}
+
+/* ---------- grid options (multi-select) ---------- */
+.ob-grid{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ob-chip{display:flex;align-items:center;gap:10px;padding:14px;border-radius:var(--radius-lg);
+  border:0;cursor:pointer;text-align:left;font-family:inherit;font-weight:var(--weight-semibold);
+  font-size:13.5px;line-height:1.2;background:var(--color-chip);color:var(--color-ink);transition:background .15s,color .15s}
+.ob-chip svg{width:18px;height:18px;stroke:var(--color-ink-faint);fill:none;stroke-width:1.8;flex:none}
+.ob-chip.on{background:var(--color-ink);color:var(--color-bg)}
+.ob-chip.on svg{stroke:var(--color-accent)}
+.ob-chip.full{grid-column:1 / -1;justify-content:center;color:var(--color-ink-soft)}
+.ob-chip.full.on{color:var(--color-bg)}
+
+/* ---------- footer CTA ---------- */
+.ob-cta{width:100%;padding:17px;font-size:16px;border-radius:var(--radius-lg);white-space:nowrap}
+.ob-skip{display:block;margin:13px auto 0;background:none;border:0;color:var(--color-ink-soft);
+  font-weight:var(--weight-semibold);font-size:13.5px;cursor:pointer;font-family:inherit}
+.ob-skip:hover{color:var(--color-ink)}
+
+/* ---------- welcome ---------- */
+.ob-welcome{flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:0 28px 26px;position:relative;overflow:hidden}
+.ob-welcome::before{content:"";position:absolute;top:-40px;left:50%;transform:translateX(-50%);
+  width:360px;height:360px;border-radius:50%;
+  background:radial-gradient(circle,rgba(239,106,32,.22),transparent 62%);pointer-events:none}
+.ob-mark{position:relative;width:60px;height:60px;border-radius:19px;display:grid;place-items:center;
+  background:var(--color-accent);box-shadow:var(--color-cta-shadow);margin-bottom:auto;margin-top:30px}
+.ob-mark svg{width:32px;height:32px}
+.ob-welcome .wbig{position:relative;font-family:var(--font-serif);font-size:38px;
+  font-weight:var(--weight-semibold);letter-spacing:var(--tracking-tight);line-height:1.04;text-wrap:balance}
+.ob-welcome .wsub{position:relative;color:var(--color-ink-soft);font-size:15px;
+  line-height:var(--leading-normal);margin-top:16px;text-wrap:pretty;max-width:320px}
+.ob-welcome .wfoot{position:relative;margin-top:30px}
+
+/* ---------- synthesis ---------- */
+.ob-syn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 32px;position:relative;overflow:hidden}
+.ob-syn::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(239,106,32,.16),transparent 60%);pointer-events:none}
+.ob-syn .orb{position:relative;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;
+  background:var(--color-surface);border:2px solid var(--color-hairline);margin-bottom:26px}
+.ob-syn .orb svg{width:34px;height:34px;stroke:var(--color-accent);fill:none;stroke-width:1.8}
+.ob-syn .stitle{position:relative;font-family:var(--font-serif);font-size:27px;font-weight:var(--weight-semibold);
+  letter-spacing:var(--tracking-snug);line-height:1.1}
+.ob-syn .sline{position:relative;color:var(--color-ink-soft);font-size:var(--text-md);margin-top:14px;
+  min-height:22px;font-weight:var(--weight-medium);transition:opacity .3s}
+.ob-syn .sbar{position:relative;width:170px;height:4px;border-radius:2px;background:var(--color-track);
+  margin-top:26px;overflow:hidden}
+.ob-syn .sbar i{display:block;height:100%;background:var(--color-accent);border-radius:2px;
+  width:0;animation:ob-load 2.4s cubic-bezier(.5,0,.2,1) forwards}
+@keyframes ob-load{to{width:100%}}
+
+/* ---------- reveal card ---------- */
+.ob-card{background:var(--color-surface);border-radius:var(--radius-2xl);padding:19px 18px;margin-top:18px}
+.ob-card .clab{font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--color-ink-soft)}
+.ob-card .cclass{font-family:var(--font-serif);font-size:22px;font-weight:var(--weight-semibold);
+  letter-spacing:var(--tracking-snug);line-height:1.18;margin-top:8px;text-wrap:pretty}
+.ob-card .cchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.ob-divide{height:1px;background:var(--color-hairline);margin:18px 0}
+.ob-watch{display:flex;flex-direction:column;gap:11px}
+.ob-watch .wrow{display:flex;align-items:flex-start;gap:11px}
+.ob-watch .wrow .wi{width:24px;height:24px;border-radius:8px;flex:none;display:grid;place-items:center;
+  background:rgba(239,106,32,.14);color:var(--color-accent)}
+.ob-watch .wrow .wi svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2}
+.ob-watch .wrow .wt{font-size:var(--text-base);line-height:var(--leading-snug);padding-top:3px}
+.ob-watch .wrow .wt b{font-weight:var(--weight-semibold);color:var(--color-ink)}
+.ob-watch .wrow .wt span{color:var(--color-ink-soft)}
+
+/* ---------- permission ---------- */
+.ob-perm{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:18px 30px 0;position:relative;overflow:hidden}
+.ob-perm .ptile{width:96px;height:96px;border-radius:28px;display:grid;place-items:center;
+  margin:24px 0 4px;background:var(--color-surface);position:relative}
+.ob-perm .ptile::before{content:"";position:absolute;inset:-14px;border-radius:36px;
+  background:radial-gradient(circle,rgba(239,106,32,.18),transparent 68%);z-index:-1}
+.ob-perm .ptile svg{width:44px;height:44px;stroke:var(--color-accent);fill:none;stroke-width:1.7}
+.ob-perm .ptitle{font-family:var(--font-serif);font-size:28px;font-weight:var(--weight-semibold);
+  letter-spacing:var(--tracking-tight);line-height:1.1;margin-top:26px;text-wrap:balance;min-height:2.2em}
+.ob-perm .pbody{color:var(--color-ink-soft);font-size:14.5px;line-height:var(--leading-normal);
+  margin-top:14px;text-wrap:pretty;max-width:320px}
+.ob-perm .pbody b{color:var(--color-ink);font-weight:var(--weight-semibold)}
+
+/* reminder time presets */
+.ob-times{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:26px}
+.ob-time{padding:14px;border-radius:var(--radius-lg);border:0;cursor:pointer;font-family:inherit;
+  font-weight:var(--weight-semibold);font-size:14px;background:var(--color-chip);color:var(--color-ink);
+  display:flex;flex-direction:column;gap:3px;align-items:flex-start;transition:background .15s,color .15s}
+.ob-time .tt{font-size:var(--text-sm);color:var(--color-ink-soft);font-weight:var(--weight-semibold)}
+.ob-time.on{background:var(--color-ink);color:var(--color-bg)}
+.ob-time.on .tt{color:var(--color-accent)}
+
+/* ---------- paywall ---------- */
+.ob-pay{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.ob-pay::before{content:"";position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+  width:340px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(239,106,32,.18),transparent 64%);pointer-events:none}
+.ob-pay-scroll{flex:1;overflow-y:auto;scrollbar-width:none;padding:8px 24px 6px;position:relative}
+.ob-pay-scroll::-webkit-scrollbar{display:none}
+.ob-payx{position:absolute;top:8px;right:18px;z-index:3;width:34px;height:34px;border-radius:11px;border:0;
+  cursor:pointer;background:var(--color-chip);color:var(--color-ink-soft);display:grid;place-items:center}
+.ob-payx svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.ob-pay .phead{padding:20px 8px 0;text-align:center}
+.ob-pay .pmark{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;margin:0 auto 16px;
+  background:var(--color-accent);box-shadow:var(--color-cta-shadow)}
+.ob-pay .pmark svg{width:27px;height:27px}
+.ob-pay .ptitle{font-family:var(--font-serif);font-size:28px;font-weight:var(--weight-semibold);
+  letter-spacing:var(--tracking-tight);line-height:1.08;text-wrap:balance;min-height:2.16em}
+.ob-pay .psub{color:var(--color-ink-soft);font-size:14px;line-height:var(--leading-normal);
+  margin-top:11px;text-wrap:pretty}
+
+.ob-feats{margin:22px 2px 6px;display:flex;flex-direction:column;gap:13px}
+.ob-feat{display:flex;align-items:center;gap:12px}
+.ob-feat .fi{width:28px;height:28px;border-radius:9px;flex:none;display:grid;place-items:center;
+  background:rgba(239,106,32,.14);color:var(--color-accent)}
+.ob-feat .fi svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9}
+.ob-feat .ft{font-size:14px;font-weight:var(--weight-medium);color:var(--color-ink);line-height:1.3}
+
+.ob-plans{margin-top:22px;display:flex;flex-direction:column;gap:11px}
+.ob-plan{width:100%;text-align:left;border:2px solid var(--color-hairline);background:var(--color-surface);
+  border-radius:var(--radius-xl);padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:13px;
+  position:relative;font-family:inherit;transition:border-color .15s,background .15s}
+.ob-plan.on{border-color:var(--color-accent);background:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface))}
+.ob-plan .pradio{width:22px;height:22px;border-radius:var(--radius-pill);border:2px solid var(--color-track);
+  flex:none;display:grid;place-items:center;transition:border-color .15s}
+.ob-plan.on .pradio{border-color:var(--color-accent)}
+.ob-plan.on .pradio::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--color-accent)}
+.ob-plan .pm{flex:1;min-width:0}
+.ob-plan .pn{font-size:15px;font-weight:var(--weight-bold);color:var(--color-ink)}
+.ob-plan .pmeta{font-size:var(--text-sm);color:var(--color-ink-soft);margin-top:3px}
+.ob-plan .pp{text-align:right;flex:none}
+.ob-plan .pp .pw{font-size:19px;font-weight:var(--weight-bold);color:var(--color-ink);letter-spacing:-.01em}
+.ob-plan .pp .pu{font-size:var(--text-sm);color:var(--color-ink-soft);margin-top:1px}
+.ob-badge{position:absolute;top:-10px;right:14px;background:var(--color-accent);color:var(--p-orange-ink);
+  font-size:10.5px;font-weight:var(--weight-bold);padding:3px 9px;border-radius:var(--radius-pill);letter-spacing:.04em}
+
+.ob-pay-foot{padding:14px 24px 22px;position:relative;background:var(--color-bg);
+  box-shadow:0 -14px 22px -10px var(--color-bg)}
+.ob-fine{color:var(--color-ink-soft);font-size:12.5px;text-align:center;margin-top:11px;line-height:var(--leading-snug)}
+.ob-links{display:flex;justify-content:center;gap:18px;margin-top:13px}
+.ob-links button{background:none;border:0;cursor:pointer;color:var(--color-ink-faint);
+  font-family:inherit;font-size:12px;font-weight:var(--weight-semibold)}
+.ob-links button:hover{color:var(--color-ink-soft)}
+
+/* ---------- done ---------- */
+.ob-done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 34px;position:relative;overflow:hidden}
+.ob-done::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(239,106,32,.18),transparent 60%)}
+.ob-done .dmark{position:relative;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;
+  background:var(--color-accent);box-shadow:var(--color-cta-shadow);margin-bottom:26px;animation:ob-pop .42s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes ob-pop{from{transform:scale(.6)}to{transform:scale(1)}}
+.ob-done .dmark svg{width:42px;height:42px;stroke:var(--p-orange-ink);fill:none;stroke-width:2.6}
+.ob-done .dtitle{position:relative;font-family:var(--font-serif);font-size:30px;font-weight:var(--weight-semibold);
+  letter-spacing:var(--tracking-tight);line-height:1.08;text-wrap:balance;min-height:2.16em}
+.ob-done .dsub{position:relative;color:var(--color-ink-soft);font-size:14.5px;line-height:var(--leading-normal);
+  margin-top:14px;text-wrap:pretty;max-width:300px}
+
+/* ---------- dev screen rail (host only) ---------- */
+.ob-rail{position:fixed;top:0;left:0;bottom:0;width:200px;background:var(--p-charcoal-950);
+  border-right:1px solid var(--p-charcoal-800);padding:22px 14px;overflow-y:auto;z-index:200;
+  font-family:var(--font-sans)}
+.ob-rail h4{color:var(--p-sand-400);font-size:11px;font-weight:var(--weight-bold);letter-spacing:.12em;
+  text-transform:uppercase;margin:0 8px 12px}
+.ob-rail .rl{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:9px 10px;border:0;
+  border-radius:10px;background:none;cursor:pointer;color:var(--p-sand-400);font-family:inherit;
+  font-size:13px;font-weight:var(--weight-medium);margin-bottom:2px}
+.ob-rail .rl:hover{background:var(--p-charcoal-850);color:var(--p-cream-100)}
+.ob-rail .rl.on{background:var(--p-charcoal-820);color:var(--p-cream-50);font-weight:var(--weight-semibold)}
+.ob-rail .rl .n{width:20px;font-size:11px;color:var(--p-taupe-600);font-feature-settings:"tnum";flex:none}
+.ob-rail .rgroup{margin-top:16px}
+.ob-rail .restart{margin-top:18px;width:100%;padding:10px;border:1px solid var(--p-charcoal-800);
+  border-radius:10px;background:none;color:var(--p-sand-400);font-family:inherit;font-size:12px;
+  font-weight:var(--weight-semibold);cursor:pointer}
+.ob-rail .restart:hover{border-color:var(--p-orange-500);color:var(--p-orange-300)}
+.ob-stage{position:fixed;inset:0 0 0 200px;display:grid;place-items:center;background:var(--p-charcoal-950)}

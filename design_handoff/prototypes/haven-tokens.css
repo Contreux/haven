@@ -1,0 +1,201 @@
+/* ============================================================
+   HAVEN — DESIGN TOKENS  (single source of truth)
+   ------------------------------------------------------------
+   Change the look of the whole app from THIS file.
+   1. PRIMITIVES  — raw values. The only place literal hex/px live.
+   2. GLOBALS     — radii, spacing, type, elevation (theme-agnostic).
+   3. THEMES      — .theme-dark / .theme-light map primitives onto
+                    the semantic tokens every component consumes.
+   Components never use a hex code — only design tokens (color, radius,
+   space, type). Do not put a slash-star sequence inside this comment.
+   ============================================================ */
+
+:root {
+  /* ---------- 1. PRIMITIVES ---------- */
+
+  /* Brand · orange (the "spark" — used sparingly) */
+  --p-orange-600: #ec6a1e;
+  --p-orange-500: #ef6a20;
+  --p-orange-300: #e89766;
+  --p-orange-ink: #1c0f06;       /* text/icon on an orange fill */
+
+  /* Warm charcoal · dark surfaces */
+  --p-charcoal-950: #15110d;
+  --p-charcoal-900: #1c1712;
+  --p-charcoal-870: #1d1711;
+  --p-charcoal-850: #211a14;
+  --p-charcoal-820: #272019;
+  --p-charcoal-800: #2f271e;
+  --p-charcoal-780: #2c241c;
+  --p-charcoal-760: #322a21;
+  --p-charcoal-740: #322619;
+
+  /* Warm creams / sands · light text + dark-theme ink */
+  --p-cream-50:  #f4ede4;
+  --p-cream-100: #f3ece3;
+  --p-cream-200: #efe7df;
+  --p-sand-300:  #c3b7a9;
+  --p-sand-400:  #b3a799;
+  --p-sand-500:  #a99c8c;
+  --p-taupe-500: #9a8d7e;
+  --p-taupe-600: #74695c;
+
+  /* Warm paper · light surfaces */
+  --p-paper-50:  #f1ece4;
+  --p-paper-100: #e7e0d6;
+  --p-paper-200: #e3dccf;
+  --p-paper-300: #ddd5c8;
+  --p-paper-peach: #f8e0cf;
+  --p-ink-900:   #1d1813;
+  --p-ink-700:   #34302a;
+  --p-stone-500: #8c8073;
+  --p-stone-400: #b0a597;
+
+  /* Semantic hues · daily-factor rings + weather risk */
+  --p-sage-dark:  #8a9966;
+  --p-sage-light: #7f8a5d;
+  --p-amber-dark: #d79a4e;
+  --p-amber-light:#c2873a;
+  --p-amber-ink-dark:  #d9a560;
+  --p-amber-ink-light: #9c6a26;
+  --p-clay-dark:  #cf7551;
+  --p-clay-light: #bd6446;
+
+  /* Device frame */
+  --p-black: #000;
+  --p-black-soft: #0a0a0a;
+
+  /* ---------- 2. GLOBAL TOKENS (theme-agnostic) ---------- */
+
+  /* Radii — every rounded corner references one of these */
+  --radius-xs:   8px;   /* flags / tiny chips        */
+  --radius-sm:   13px;  /* icon buttons             */
+  --radius-md:   14px;  /* thumbnails / tab pills   */
+  --radius-lg:   18px;  /* primary buttons          */
+  --radius-xl:   20px;  /* factor cards             */
+  --radius-2xl:  26px;  /* hero cards               */
+  --radius-screen: 37px;/* phone screen             */
+  --radius-device: 48px;/* phone body               */
+  --radius-pill: 999px; /* streak / badges          */
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 9px;
+  --space-4: 11px;
+  --space-5: 14px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 22px;
+  --space-10: 30px;
+
+  /* Typography */
+  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-sans:  "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  --text-xs:      11px;   /* flags                 */
+  --text-sm:      12.5px; /* meta / times          */
+  --text-base:    13.5px; /* body / risk meta      */
+  --text-md:      15px;   /* section heads / btns  */
+  --text-lg:      19px;   /* column labels         */
+  --text-title:   34px;   /* screen title (serif)  */
+  --text-display: 31px;   /* risk word (serif)     */
+
+  --leading-tight: 1.06;
+  --leading-snug:  1.4;
+  --leading-normal:1.55;
+  --tracking-tight: -0.015em;
+  --tracking-snug:  -0.01em;
+  --tracking-wide:  0.14em;
+
+  /* Elevation */
+  --shadow-device: 0 30px 70px -30px rgba(0,0,0,.7);
+
+  /* ---------- PAGE / SHOWCASE CHROME (always dark) ---------- */
+  --color-page-bg:        var(--p-charcoal-950);
+  --color-eyebrow:        var(--p-taupe-500);
+  --color-heading:        var(--p-cream-50);
+  --color-lede:           var(--p-sand-400);
+  --color-lede-strong:    var(--p-cream-200);
+  --color-note-bg:        var(--p-charcoal-850);
+  --color-note-border:    var(--p-charcoal-740);
+  --color-note-ink:       var(--p-sand-300);
+  --color-note-strong:    var(--p-cream-50);
+  --color-badge-ink:      var(--p-orange-300);
+  --color-badge-bg:       rgba(238,106,32,.13);
+  --color-badge-border:   rgba(238,106,32,.3);
+  --color-badge-plain-ink:    var(--p-taupe-500);
+  --color-badge-plain-bg:     var(--p-charcoal-870);
+  --color-badge-plain-border: var(--p-charcoal-740);
+}
+
+/* ---------- 3a. THEME · DARK (default) ---------- */
+.theme-dark {
+  --color-bg:           var(--p-charcoal-900);
+  --color-surface:      var(--p-charcoal-820);
+  --color-chip:         var(--p-charcoal-820);
+  --color-ink:          var(--p-cream-100);
+  --color-ink-soft:     var(--p-sand-500);
+  --color-ink-faint:    var(--p-taupe-600);
+  --color-hairline:     var(--p-charcoal-780);
+  --color-track:        var(--p-charcoal-760);
+
+  --color-accent:       var(--p-orange-500);
+  --color-streak-bg:    rgba(239,106,32,.14);
+
+  --color-risk:         var(--p-amber-dark);
+  --color-risk-bg:      rgba(215,154,78,.15);
+  --color-risk-ink:     var(--p-amber-ink-dark);
+
+  --color-cta-bg:       var(--p-orange-500);
+  --color-cta-ink:      var(--p-orange-ink);
+  --color-cta-shadow:   0 8px 26px -10px rgba(239,106,32,.6);
+
+  --color-tabbar-bg:    rgba(28,23,18,.86);
+  --color-tab-active-bg:  var(--p-charcoal-800);
+  --color-tab-active-ink: var(--p-cream-100);
+
+  --color-factor-good:  var(--p-sage-dark);
+  --color-factor-mid:   var(--p-amber-dark);
+  --color-factor-high:  var(--p-clay-dark);
+
+  --color-device-frame: var(--p-black);
+}
+
+/* ---------- 3b. THEME · LIGHT (companion) ---------- */
+.theme-light {
+  --color-bg:           var(--p-paper-50);
+  --color-surface:      var(--p-paper-100);
+  --color-chip:         var(--p-paper-100);
+  --color-ink:          var(--p-ink-900);
+  --color-ink-soft:     var(--p-stone-500);
+  --color-ink-faint:    var(--p-stone-400);
+  --color-hairline:     var(--p-paper-200);
+  --color-track:        var(--p-paper-300);
+
+  --color-accent:       var(--p-orange-600);
+  --color-streak-bg:    var(--p-paper-peach);
+
+  --color-risk:         var(--p-amber-light);
+  --color-risk-bg:      #f0e2cd;
+  --color-risk-ink:     var(--p-amber-ink-light);
+
+  --color-cta-bg:       var(--p-ink-700);
+  --color-cta-ink:      var(--p-cream-50);
+  --color-cta-shadow:   0 8px 22px -12px rgba(52,48,42,.5);
+
+  --color-tabbar-bg:    rgba(241,236,228,.86);
+  --color-tab-active-bg:  #2f2a24;
+  --color-tab-active-ink: var(--p-cream-100);
+
+  --color-factor-good:  var(--p-sage-light);
+  --color-factor-mid:   var(--p-amber-light);
+  --color-factor-high:  var(--p-clay-light);
+
+  --color-device-frame: var(--p-black-soft);
+}
