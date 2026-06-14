@@ -32,6 +32,7 @@ struct RootView: View {
                         .padding(.vertical, Spacing.s5)
                         .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
                 }
+                .accessibilityIdentifier("theme-toggle")
             }
             .padding(Spacing.s6)
         }
