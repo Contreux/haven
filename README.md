@@ -78,7 +78,10 @@ A linear, back-navigable flow:
 - **Today** — top bar (date + streak flame); tappable **weather-risk hero** (big serif risk word +
   4-bar gauge + headline/detail); **three factor rings** (Sleep / Stress / Water, color-coded
   good/mid/high); "Log a migraine" + "Snap a meal" actions; optional "migraine today" danger card;
-  symptom/factors summary; then the "Logged today" food list (or empty state).
+  symptom/factors summary; then the **"Logged today" ledger** — a single chronological record of
+  *every* entry logged that day (food, migraine, symptoms, factors), or an empty state. Weather is
+  excluded; it's external context, never user-logged. The rings/cards above show *current state*,
+  the ledger shows the running *record*.
 - **Calendar** — month grid; each day shows a severity-colored ring (migraine), a dot (food), or a
   small dot (symptoms only). Tap a day → **Day Detail** sheet.
 - **Insights** — three big stats; a **ranked trigger list** (rank, name, "N migraines"/"no overlap"
@@ -164,9 +167,14 @@ Daily log keyed by `YYYY-MM-DD`:
   ],
   "migraine":  { "had": true, "severity": "moderate", "time": "15:10", "notes": "" },
   "symptoms":  ["light", "nausea"],
-  "factors":   { "sleep": 6.5, "stress": "high", "hydration": "low", "weatherSensitive": true }
+  "symptomsLoggedAt": "14:40",
+  "factors":   { "sleep": 6.5, "stress": "high", "hydration": "low", "weatherSensitive": true },
+  "factorsLoggedAt": "09:02"
 }
 ```
+
+Each sub-record carries a timestamp (`food.time`, `migraine.time`, `symptomsLoggedAt`,
+`factorsLoggedAt`) so the Today **ledger** can merge them into one chronological list.
 
 Plus:
 - **Onboarding profile** — the quiz answers and derived profile class / watch-list.
