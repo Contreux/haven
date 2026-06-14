@@ -10,7 +10,8 @@ scan() { # pattern, message
   fi
 }
 
-scan 'Color\(\s*(\.sRGB|red:|hue:|#)' 'Raw Color(...) — use a Theme token'
+scan 'Color\(\s*(\.sRGB|red:|white:|hue:|#)' 'Raw Color(...) — use a Theme token'
+scan 'Color\.(red|orange|yellow|green|mint|teal|cyan|blue|indigo|purple|pink|brown|white|black|gray|primary|secondary)\b' 'System named Color — use a Theme token (Color.clear is allowed)'
 scan '\.font\(\s*\.system' '.font(.system ...) — use .havenText(...)'
 scan '#[0-9A-Fa-f]{6}' 'Hex literal — primitives live only in HavenDesignSystem'
 
