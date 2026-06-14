@@ -212,8 +212,9 @@ results, falling back silently when offline or the call fails.
 
 ```
 Migraine/
+├── HavenDesignSystem/      # design-system module (single source of truth) — see its README
+│   └── README.md           #   primitives → global tokens → dark/light themes
 ├── Haven/                  # SwiftUI app (Xcode project)
-│   ├── Theme/              # ported design tokens (primitives → semantic → dark/light)
 │   ├── Onboarding/         # welcome → quiz → synthesis → primers → paywall → done
 │   ├── App/                # Today / Calendar / Insights / Weather + bottom sheets + capture
 │   ├── Services/           # Convex client, on-device food fallback engine, StoreKit
@@ -222,6 +223,10 @@ Migraine/
 ├── design_handoff/         # the original prototype — design source of truth (reference only)
 └── README.md
 ```
+
+The design system is a **separate module**, not a folder inside the app, so its raw values stay
+`internal` and feature code can only reach the public tokens. See
+[`HavenDesignSystem/README.md`](./HavenDesignSystem/README.md).
 
 ---
 
