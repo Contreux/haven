@@ -10,6 +10,8 @@ xcuserdata/
 node_modules/
 .convex/
 .env.local
+# Stray transpiled JS next to convex/*.ts sources (keep convex/_generated/*.js)
+/convex/*.js
 
 # Maestro UI-test screenshot output (root-level *.png; design assets live in subdirs)
 /*.png
