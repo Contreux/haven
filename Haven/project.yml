@@ -6,6 +6,11 @@ options:
 packages:
   HavenDesignSystem:
     path: ../HavenDesignSystem
+  HavenCore:
+    path: ../HavenCore
+  convex-swift:
+    url: https://github.com/get-convex/convex-swift
+    from: 0.8.0
 targets:
   Haven:
     type: application
@@ -13,6 +18,9 @@ targets:
     sources: [Sources]
     dependencies:
       - package: HavenDesignSystem
+      - package: HavenCore
+      - package: convex-swift
+        product: ConvexMobile
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.haven.Haven
@@ -21,3 +29,6 @@ targets:
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.0"
+        # convex-swift's Rust xcframework ships arm64-only for the simulator.
+        # Exclude x86_64 so simulator builds link on Apple Silicon.
+        "EXCLUDED_ARCHS[sdk=iphonesimulator*]": x86_64
