@@ -1,8 +1,8 @@
 import CoreGraphics
 
-public enum FontWeightToken { case regular, medium, semibold, bold }
+public enum FontWeightToken: Sendable { case regular, medium, semibold, bold }
 
-public enum FontFamily {
+public enum FontFamily: Sendable {
     case serif   // Source Serif 4
     case sans    // Hanken Grotesk
 
