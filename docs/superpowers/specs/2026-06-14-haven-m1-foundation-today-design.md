@@ -34,6 +34,7 @@ onboarding / paywall / StoreKit · real account auth UI · the full bottom-sheet
 | 5 | px → pt | **Treat token px as points** (faithful to the 372pt design frame); fonts scale under Dynamic Type, spacing/radii fixed |
 | 6 | Weather in M1 | **Stubbed** local mock matching the real shape; `fetchWeather` action is M4 |
 | 7 | Tooling | **XcodeGen** (`project.yml`) + `convex` CLI — terminal-reproducible |
+| 8 | "Logged today" list | A **ledger** of *all* log types (food, migraine, symptoms, factors), not food-only; derived + time-sorted (see §6.5). Weather is excluded — it's never logged. |
 
 ---
 
@@ -170,11 +171,13 @@ from tokens where applicable. Full name list: `design_handoff/prototypes/app/ico
 days: defineTable({
   userId: v.string(),
   date: v.string(),                              // "YYYY-MM-DD"
-  factors: v.object({ sleep: v.number(), stress: v.string(),
-                      hydration: v.string(), weatherSensitive: v.boolean() }),
+  factors: v.optional(v.object({ sleep: v.number(), stress: v.string(),
+                      hydration: v.string(), weatherSensitive: v.boolean() })),
+  factorsLoggedAt: v.optional(v.string()),       // ledger timestamp for the factors entry
   migraine: v.optional(v.object({ had: v.boolean(), severity: v.string(),
                                   time: v.string(), notes: v.string() })),
   symptoms: v.array(v.string()),
+  symptomsLoggedAt: v.optional(v.string()),      // ledger timestamp for the symptoms entry
 }).index("by_user_date", ["userId", "date"]),
 
 settings: defineTable({ userId: v.string(), theme: v.string() })
@@ -225,7 +228,33 @@ observe it. A `setFactors` call from the UI mutates Convex → the subscription 
   `setFactors` → reactive update. (Polished Daily-factors sheet is M2.)
 - **Action buttons** — "Log a migraine" (cta primary) + "Snap a meal" (ghost) rendered to spec;
   wired in M2.
-- **Logged today** — empty-state card (food capture is M2).
+- **Migraine alert card** — conditional ("current status" callout); reads `day.migraine`.
+- **Summary card** — conditional; symptom chips + factors text ("current status" callout).
+- **"Logged today" — the day ledger.** A single chronological list of *every* entry the user
+  logged that day, not just food (see §6.5). In M1 this renders seeded food/migraine/symptoms plus
+  the factors the user edits; food *capture* is still M2, but food *entries* already appear here.
+
+### 6.5 The day ledger ("Logged today")
+
+A **ledger** is the running record of the day: every discrete log is an entry, shown newest-/oldest-
+first by timestamp. It is *derived at render time* by merging the day document's sub-records into one
+sorted list — there is no separate "events" table.
+
+| Entry type | Source | Timestamp | Row |
+|---|---|---|---|
+| Food | each `day.foods[]` | `food.time` | existing `FoodCard` (thumb, name, trigger chips) |
+| Migraine | `day.migraine` (if `had`) | `migraine.time` | severity · time · notes, alert-styled |
+| Symptoms | `day.symptoms` (if non-empty) | `day.symptomsLoggedAt` | the logged symptom chips |
+| Factors | `day.factors` (if set) | `day.factorsLoggedAt` | "Sleep 6.5h · Stress high · Water low…" |
+
+Rules:
+- **Weather never appears** — it is external context (the risk hero), never user-logged.
+- Factors/symptoms appear in the ledger **and** as their "current status" surfaces (rings / summary
+  / migraine alert). That redundancy is intentional: the ledger is the *record*, the top-of-screen
+  cards are the *current state*.
+- Empty state when the ledger has zero entries.
+- Each entry type is a small, independently testable row view; the ledger is `[LedgerEntry]` built
+  by a pure mapping function over `DayLog`.
 
 ### 6.4 Streak
 Derived client-side from the seeded day range: consecutive days ending today with any entry.
