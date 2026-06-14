@@ -1,0 +1,28 @@
+# Maestro flow — Today screen: live seeded data renders, the factor-editor write
+# path round-trips, and the dark/light toggle works.
+# Requires: booted simulator with the app installed, deployment seeded for sim-device.
+#   ~/.maestro/bin/maestro test Haven/maestro/today.yaml
+appId: app.haven.Haven
+---
+- launchApp
+# Live seeded data renders (subscription → ledger).
+- assertVisible: "Today"
+- assertVisible: "Calm pressure"
+- assertVisible: "Logged today"
+- assertVisible: "Oat latte"
+- assertVisible: "Daily factors"
+- takeScreenshot: today-dark
+# Open the factor editor by tapping a ring, edit, save (the M1 write path).
+- tapOn: "STRESS"
+- assertVisible: "Daily factors"
+- assertVisible: "Save"
+- takeScreenshot: today-editor
+- tapOn: "Save"
+# Back on Today after the write round-trips.
+- assertVisible: "Logged today"
+- takeScreenshot: today-after-save
+# Runtime theme toggle re-skins the whole screen.
+- tapOn:
+    id: "theme-toggle"
+- assertVisible: "Today"
+- takeScreenshot: today-light
