@@ -1,0 +1,19 @@
+{
+  "name": "haven-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "convex": "latest",
+    "convex-test": "latest",
+    "vitest": "latest",
+    "@edge-runtime/vm": "latest",
+    "typescript": "latest"
+  }
+}

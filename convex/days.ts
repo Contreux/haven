@@ -1,0 +1,46 @@
+import { query, mutation } from "./_generated/server";
+import { v } from "convex/values";
+
+export const getDay = query({
+  args: { userId: v.string(), date: v.string() },
+  handler: async (ctx, { userId, date }) => {
+    return await ctx.db
+      .query("days")
+      .withIndex("by_user_date", (q) => q.eq("userId", userId).eq("date", date))
+      .unique();
+  },
+});
+
+const factorsArg = v.object({
+  sleepHours: v.number(),
+  stress: v.union(v.literal("low"), v.literal("mid"), v.literal("high")),
+  hydration: v.union(v.literal("low"), v.literal("mid"), v.literal("high")),
+  weatherSensitive: v.boolean(),
+});
+
+export const setFactors = mutation({
+  args: {
+    userId: v.string(),
+    date: v.string(),
+    factors: factorsArg,
+    loggedAt: v.string(),
+  },
+  handler: async (ctx, { userId, date, factors, loggedAt }) => {
+    const existing = await ctx.db
+      .query("days")
+      .withIndex("by_user_date", (q) => q.eq("userId", userId).eq("date", date))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { factors, factorsLoggedAt: loggedAt });
+      return existing._id;
+    }
+    return await ctx.db.insert("days", {
+      userId,
+      date,
+      factors,
+      factorsLoggedAt: loggedAt,
+      symptoms: [],
+      foods: [],
+    });
+  },
+});
