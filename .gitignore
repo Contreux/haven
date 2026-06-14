@@ -1,0 +1,19 @@
+# Xcode / SwiftPM
+.build/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+.swiftpm/
+xcuserdata/
+
+# Node / Convex (P2)
+node_modules/
+.convex/
+.env.local
+
+# Maestro UI-test screenshot output (root-level *.png; design assets live in subdirs)
+/*.png
+.maestro/
+
+# macOS
+.DS_Store

@@ -1,0 +1,23 @@
+# Maestro flow — P1 foundation demo: verifies the design system renders and the
+# runtime dark/light toggle re-themes the whole screen.
+# Run with a booted simulator that has the app installed:
+#   ~/.maestro/bin/maestro test Haven/maestro/p1-foundation.yaml
+appId: app.haven.Haven
+---
+- launchApp
+# Dark is the default — title + the "Switch to light" CTA are present.
+- assertVisible: "Haven"
+- assertVisible: "FOUNDATION"
+- assertVisible: "Elevated"
+- assertVisible: "Switch to light"
+- takeScreenshot: p1-dark
+# Tap the toggle by its stable accessibility id (label text changes, id doesn't).
+- tapOn:
+    id: "theme-toggle"
+# Re-theme proof: the CTA label flips to "Switch to dark".
+- assertVisible: "Switch to dark"
+- takeScreenshot: p1-light
+# Toggle back to dark to confirm it round-trips.
+- tapOn:
+    id: "theme-toggle"
+- assertVisible: "Switch to light"

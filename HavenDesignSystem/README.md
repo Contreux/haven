@@ -137,8 +137,10 @@ Text("Today").havenText(.screenTitle, color: theme.ink)
 ```
 
 - **Kerning** = `tracking_em × size`. **Line-spacing** ≈ `size × (leading − 1)`.
-- Fonts bundled in `Resources/Fonts/` (Source Serif 4 variable + Hanken Grotesk) and registered via
-  `UIAppFonts`. Source Serif 4 uses optical sizing.
+- Fonts bundled in `Resources/Fonts/` (Source Serif 4 variable + Hanken Grotesk) and registered at
+  runtime from `Bundle.module` via `CTFontManagerRegisterFontsForURL` (`Fonts.registerIfNeeded()`,
+  called once at app launch) — the SPM-resource equivalent of an `Info.plist` `UIAppFonts` entry.
+  Source Serif 4 uses optical sizing.
 - **Dynamic Type:** sizes scale via `UIFontMetrics`; spacing/radii stay fixed.
 
 ---
