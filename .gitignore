@@ -1,0 +1,15 @@
+# Xcode / SwiftPM
+.build/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+.swiftpm/
+xcuserdata/
+
+# Node / Convex (P2)
+node_modules/
+.convex/
+.env.local
+
+# macOS
+.DS_Store
