@@ -14,4 +14,19 @@ import CoreGraphics
         #expect(Radius.xxl == 26)
         #expect(Radius.pill == 999)
     }
+    @Test func typeScaleMatchesSource() {
+        #expect(TypeScale.title == 34)
+        #expect(TypeScale.display == 31)
+        #expect(TypeScale.base == 13.5)
+        #expect(TypeScale.sm == 12.5)
+    }
+    @Test func leadingAndTrackingMatchSource() {
+        #expect(Leading.tight == 1.06)
+        #expect(Tracking.wide == 0.14)
+        #expect(Tracking.tight == -0.015)
+    }
+    @Test func fontFamilyExposesPostScriptNames() {
+        #expect(FontFamily.serif.fontName(weight: .regular) == "SourceSerif4")
+        #expect(FontFamily.sans.fontName(weight: .semibold) == "HankenGrotesk")
+    }
 }
