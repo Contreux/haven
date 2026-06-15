@@ -45,6 +45,9 @@ public struct Migraine: Codable, Sendable, Equatable {
     public let severity: String
     public let time: String          // "HH:mm"
     public let notes: String
+    public init(had: Bool, severity: String, time: String, notes: String) {
+        self.had = had; self.severity = severity; self.time = time; self.notes = notes
+    }
 }
 
 public struct DayLog: Codable, Sendable, Equatable {
