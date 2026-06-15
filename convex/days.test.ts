@@ -113,3 +113,15 @@ test("removeFood removes by index", async () => {
   expect(day?.foods.length).toBe(1);
   expect(day?.foods[0].name).toBe("B");
 });
+
+test("getDays returns all the device's days, ascending, scoped", async () => {
+  const t = convexTest(schema, modules);
+  await t.run(async (ctx) => {
+    await ctx.db.insert("days", { userId: "dev-1", date: "2026-06-12", symptoms: [], foods: [] });
+    await ctx.db.insert("days", { userId: "dev-1", date: "2026-06-14", symptoms: [], foods: [] });
+    await ctx.db.insert("days", { userId: "dev-2", date: "2026-06-14", symptoms: [], foods: [] });
+  });
+  const days = await t.query(api.days.getDays, { userId: "dev-1" });
+  expect(days.length).toBe(2);
+  expect(days.map((d: any) => d.date)).toEqual(["2026-06-12", "2026-06-14"]);
+});
