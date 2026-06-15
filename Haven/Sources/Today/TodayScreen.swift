@@ -6,10 +6,12 @@ struct TodayScreen: View {
     @Environment(\.theme) private var theme
     @State private var store: TodayStore
     private let onLogger: (LoggerKind) -> Void
+    private let onProfile: () -> Void
 
-    init(store: TodayStore, onLogger: @escaping (LoggerKind) -> Void) {
+    init(store: TodayStore, onLogger: @escaping (LoggerKind) -> Void, onProfile: @escaping () -> Void = {}) {
         _store = State(initialValue: store)
         self.onLogger = onLogger
+        self.onProfile = onProfile
     }
 
     var body: some View {
@@ -17,7 +19,7 @@ struct TodayScreen: View {
             theme.bg.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.s6) {
-                    TopBar(dateText: prettyDate(store.today), streak: store.streak)
+                    TopBar(dateText: prettyDate(store.today), streak: store.streak, onProfile: onProfile)
                     RiskHero(weather: store.weather)
                     HStack {
                         Text("Today's factors").havenText(.sectionHead, color: theme.ink)

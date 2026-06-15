@@ -5,6 +5,7 @@ struct TopBar: View {
     @Environment(\.theme) private var theme
     let dateText: String
     let streak: Int
+    var onProfile: () -> Void = {}
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
@@ -24,18 +25,18 @@ struct TopBar: View {
                     .background(theme.streakBg, in: Capsule())
                 }
                 iconButton("magnifyingglass")
-                iconButton("person")
+                iconButton("person", action: onProfile, id: "open-profile")
             }
         }
     }
 
-    // Visual chrome — search + profile. Actions land in later milestones (M5 profile).
-    private func iconButton(_ name: String) -> some View {
-        Button { } label: {
+    private func iconButton(_ name: String, action: @escaping () -> Void = {}, id: String? = nil) -> some View {
+        Button(action: action) {
             Image(systemName: name)
                 .foregroundStyle(theme.inkSoft)
                 .frame(width: 38, height: 38)
                 .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
         }
+        .accessibilityIdentifier(id ?? name)
     }
 }
