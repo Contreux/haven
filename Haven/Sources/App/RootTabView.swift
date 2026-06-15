@@ -31,7 +31,7 @@ struct RootTabView: View {
         .safeAreaInset(edge: .bottom) { bottomNav }   // insets content so nothing hides behind the bar
         .task { store.start() }
         .sheet(item: $activeSheet) { kind in sheet(for: kind).environment(\.theme, theme) }
-        .sheet(isPresented: $showProfile) {
+        .fullScreenCover(isPresented: $showProfile) {
             if let service = store.source as? ConvexService {
                 ProfileScreen(source: service, onDataDeleted: { showProfile = false; onDataDeleted() })
                     .environment(\.theme, theme)
