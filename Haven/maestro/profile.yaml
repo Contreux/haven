@@ -17,8 +17,7 @@ appId: app.haven.Haven
 - tapOn:
     id: "profile-delete"
 - assertVisible: "Delete all your data?"
-- tapOn:
-    point: "50%,8%"
+- tapOn: "Cancel"
 - scrollUntilVisible:
     element:
       text: "Your profile"

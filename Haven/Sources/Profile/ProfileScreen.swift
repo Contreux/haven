@@ -44,11 +44,11 @@ struct ProfileScreen: View {
             }
             .environment(\.theme, theme)
         }
-        .confirmationDialog("Delete all your data?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+        .alert("Delete all your data?", isPresented: $confirmingDelete) {
+            Button("Cancel", role: .cancel) {}
             Button("Delete everything", role: .destructive) {
                 Task { await store.deleteData(); onDataDeleted() }
             }
-            Button("Cancel", role: .cancel) {}
         } message: {
             Text("This permanently removes your logs and profile, and returns you to setup.")
         }
