@@ -30,12 +30,13 @@ struct SummaryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s3) {
-            Text("Today's status").havenText(.eyebrow, color: theme.inkFaint)
+            Text("Daily factors").havenText(.eyebrow, color: theme.inkFaint)
             if !symptoms.isEmpty {
                 FlowChips(items: symptoms)
             }
             if let f = factors {
-                Text("Sleep \(String(format: "%.1f", f.sleepHours))h · Stress \(f.stress.rawValue) · Water \(f.hydration.rawValue)")
+                let ws = f.weatherSensitive ? " · Felt weather-sensitive" : ""
+                Text("Sleep \(String(format: "%.1f", f.sleepHours))h · Stress \(f.stress.rawValue) · Water \(f.hydration.rawValue)\(ws)")
                     .havenText(.body, color: theme.inkSoft)
             }
         }
