@@ -1,5 +1,6 @@
 import Testing
 import CoreGraphics
+import CoreText
 @testable import HavenDesignSystem
 
 @Suite struct TokenScaleTests {
@@ -25,8 +26,20 @@ import CoreGraphics
         #expect(Tracking.wide == 0.14)
         #expect(Tracking.tight == -0.015)
     }
-    @Test func fontFamilyExposesPostScriptNames() {
-        #expect(FontFamily.serif.fontName(weight: .regular) == "SourceSerif4")
-        #expect(FontFamily.sans.fontName(weight: .semibold) == "HankenGrotesk")
+    @Test func fontFamilyExposesRegisteredNames() {
+        #expect(FontFamily.serif.fontName(weight: .regular) == "Source Serif 4")
+        #expect(FontFamily.sans.fontName(weight: .semibold) == "Hanken Grotesk")
+    }
+
+    /// Guards the real bug: the names must actually resolve to the bundled fonts.
+    /// A wrong name (the previous "SourceSerif4"/"HankenGrotesk") silently falls
+    /// back to the system font instead of throwing — only a resolution check catches it.
+    @Test func fontNamesResolveToBundledFamilies() {
+        Fonts.registerIfNeeded()
+        for (family, expected) in [(FontFamily.serif, "Source Serif 4"), (FontFamily.sans, "Hanken Grotesk")] {
+            let name = family.fontName(weight: .regular)
+            let ct = CTFontCreateWithName(name as CFString, 16, nil)
+            #expect(CTFontCopyFamilyName(ct) as String == expected, "\(name) did not resolve to \(expected)")
+        }
     }
 }

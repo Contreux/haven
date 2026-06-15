@@ -6,11 +6,15 @@ public enum FontFamily: Sendable {
     case serif   // Source Serif 4
     case sans    // Hanken Grotesk
 
-    /// PostScript family base; weight selection is applied by the variable font.
+    /// Registered family name. `Font.custom` resolves this, and `.weight()` then
+    /// selects along each face's variable weight axis (Hanken Grotesk 100–900,
+    /// Source Serif 4 200–900). These MUST match the bundled fonts' family names
+    /// (see `Fonts.registerIfNeeded`); a mismatch silently falls back to the system
+    /// font, which is exactly the bug this replaced.
     public func fontName(weight: FontWeightToken) -> String {
         switch self {
-        case .serif: return "SourceSerif4"
-        case .sans:  return "HankenGrotesk"
+        case .serif: return "Source Serif 4"
+        case .sans:  return "Hanken Grotesk"
         }
     }
 }
