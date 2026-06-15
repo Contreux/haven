@@ -9,6 +9,7 @@
  */
 
 import type * as ai from "../ai.js";
+import type * as billing from "../billing.js";
 import type * as days from "../days.js";
 import type * as files from "../files.js";
 import type * as seed from "../seed.js";
@@ -23,6 +24,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   ai: typeof ai;
+  billing: typeof billing;
   days: typeof days;
   files: typeof files;
   seed: typeof seed;
