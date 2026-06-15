@@ -78,3 +78,13 @@ test("removeMigraine clears it", async () => {
   const day = await t.query(api.days.getDay, { userId: "dev-1", date: "2026-06-14" });
   expect(day?.migraine?.had ?? false).toBe(false);
 });
+
+test("setSymptoms upserts symptoms + timestamp", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.days.setSymptoms, {
+    userId: "dev-1", date: "2026-06-14", symptoms: ["light", "nausea"], loggedAt: "14:40",
+  });
+  const day = await t.query(api.days.getDay, { userId: "dev-1", date: "2026-06-14" });
+  expect(day?.symptoms).toEqual(["light", "nausea"]);
+  expect(day?.symptomsLoggedAt).toBe("14:40");
+});

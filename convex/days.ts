@@ -80,3 +80,15 @@ export const removeMigraine = mutation({
     return existing?._id ?? null;
   },
 });
+
+export const setSymptoms = mutation({
+  args: { userId: v.string(), date: v.string(), symptoms: v.array(v.string()), loggedAt: v.string() },
+  handler: async (ctx, { userId, date, symptoms, loggedAt }) => {
+    const existing = await findDay(ctx, userId, date);
+    if (existing) {
+      await ctx.db.patch(existing._id, { symptoms, symptomsLoggedAt: loggedAt });
+      return existing._id;
+    }
+    return await ctx.db.insert("days", { userId, date, symptoms, symptomsLoggedAt: loggedAt, foods: [] });
+  },
+});
