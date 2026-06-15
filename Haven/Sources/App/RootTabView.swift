@@ -117,7 +117,10 @@ struct RootTabView: View {
         case .migraine: MigraineSheet(existing: store.day?.migraine, onSave: { try? await store.saveMigraine($0) }, onRemove: { try? await store.removeMigraine() })
         case .symptom: SymptomSheet(existing: store.day?.symptoms ?? []) { try? await store.saveSymptoms($0) }
         case .factors: FactorsSheet(initial: store.day?.factors) { try? await store.saveFactors($0) }
-        case .food: FoodCaptureSheet(analyze: { await store.analyze($0) }) { food, imageData in await saveFood(food, imageData) }
+        case .food: FoodCaptureSheet(
+            analyze: { await store.analyze($0) },
+            analyzeImage: { data, hint in await store.analyzeImage(imageBase64: data.base64EncodedString(), hint: hint) },
+            onSave: { food, imageData in await saveFood(food, imageData) })
         }
     }
     private func saveFood(_ food: FoodEntry, _ imageData: Data?) async {
