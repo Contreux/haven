@@ -20,4 +20,7 @@ public protocol DayDataSource: AnyObject {
     func getSettings() async throws -> Settings
     func setSubscribed(_ subscribed: Bool) async throws
     func validateSubscription(transactionId: String) async throws
+    func updateAnswers(_ json: String) async throws
+    func setReminderTime(_ time: String) async throws
+    func deleteMyData() async throws
 }
