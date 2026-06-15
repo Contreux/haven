@@ -10,6 +10,7 @@ struct ProfileScreen: View {
     @State private var store: ProfileStore
     @State private var editing: OnboardingQuestion?
     @State private var reminder = "evening"
+    @State private var confirmingDelete = false
     let onDataDeleted: () -> Void
 
     init(source: DayDataSource, onDataDeleted: @escaping () -> Void) {
@@ -28,6 +29,7 @@ struct ProfileScreen: View {
                     remindersSection
                     weatherSection
                     aboutSection
+                    dataSection
                 }
                 .padding(Spacing.s7)
             }
@@ -41,6 +43,31 @@ struct ProfileScreen: View {
                 Task { await store.saveAnswer(questionId: q.id, values: values) }
             }
             .environment(\.theme, theme)
+        }
+        .confirmationDialog("Delete all your data?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+            Button("Delete everything", role: .destructive) {
+                Task { await store.deleteData(); onDataDeleted() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently removes your logs and profile, and returns you to setup.")
+        }
+    }
+
+    private var dataSection: some View {
+        sectionCard("DATA & PRIVACY") {
+            VStack(alignment: .leading, spacing: Spacing.s4) {
+                ShareLink(item: DoctorReport.text(days: store.days, klass: store.profile.klass)) {
+                    HStack { Text("Export report").havenText(.body, color: theme.ink); Spacer()
+                        Image(systemName: "square.and.arrow.up").foregroundStyle(theme.inkFaint) }
+                }
+                .accessibilityIdentifier("profile-export")
+                Button { confirmingDelete = true } label: {
+                    HStack { Text("Delete my data").havenText(.body, color: theme.accent); Spacer()
+                        Image(systemName: "trash").foregroundStyle(theme.accent) }
+                }
+                .accessibilityIdentifier("profile-delete")
+            }
         }
     }
 
