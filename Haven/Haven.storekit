@@ -1,0 +1,46 @@
+{
+  "identifier" : "HAVEN_SK",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : { "_applicationInternalID" : "haven", "_developerTeamID" : "" },
+  "subscriptionGroups" : [
+    {
+      "id" : "HAVEN_PREMIUM",
+      "localizationsAndOffers" : [],
+      "name" : "Haven Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "83.20",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "HAVEN_YEARLY",
+          "introductoryOffer" : {
+            "internalID" : "HAVEN_TRIAL",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [ { "description" : "Full access, billed yearly", "displayName" : "Yearly", "locale" : "en_US" } ],
+          "productID" : "haven.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly",
+          "subscriptionGroupID" : "HAVEN_PREMIUM",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [], "codeOffers" : [],
+          "displayPrice" : "12.00", "familyShareable" : false, "groupNumber" : 1,
+          "internalID" : "HAVEN_WEEKLY",
+          "localizations" : [ { "description" : "Full access, billed weekly", "displayName" : "Weekly", "locale" : "en_US" } ],
+          "productID" : "haven.weekly",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Weekly",
+          "subscriptionGroupID" : "HAVEN_PREMIUM",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : { "major" : 3, "minor" : 0 }
+}

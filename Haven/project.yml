@@ -15,7 +15,7 @@ targets:
   Haven:
     type: application
     platform: iOS
-    sources: [Sources]
+    sources: [Sources, Haven.storekit]
     dependencies:
       - package: HavenDesignSystem
       - package: HavenCore
@@ -33,3 +33,10 @@ targets:
         # convex-swift's Rust xcframework ships arm64-only for the simulator.
         # Exclude x86_64 so simulator builds link on Apple Silicon.
         "EXCLUDED_ARCHS[sdk=iphonesimulator*]": x86_64
+schemes:
+  Haven:
+    build:
+      targets: { Haven: all }
+    run:
+      config: Debug
+      storeKitConfiguration: Haven.storekit
