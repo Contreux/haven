@@ -132,3 +132,15 @@ export const removeFood = mutation({
     return existing._id;
   },
 });
+
+export const deleteAll = mutation({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const rows = await ctx.db
+      .query("days")
+      .withIndex("by_user_date", (q) => q.eq("userId", userId))
+      .collect();
+    for (const row of rows) await ctx.db.delete(row._id);
+    return rows.length;
+  },
+});

@@ -50,3 +50,27 @@ test("setSubscribed flips subscribed", async () => {
   const s = await t.query(api.settings.getSettings, { userId: "dev-1" });
   expect(s.subscribed).toBe(true);
 });
+
+test("updateAnswers patches answers, keeps onboarded", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.settings.completeOnboarding, { userId: "dev-1", answers: '{"frequency":["weekly"]}', reminderTime: "evening" });
+  await t.mutation(api.settings.updateAnswers, { userId: "dev-1", answers: '{"frequency":["chronic"]}' });
+  const s = await t.query(api.settings.getSettings, { userId: "dev-1" });
+  expect(s.answers).toBe('{"frequency":["chronic"]}');
+  expect(s.onboarded).toBe(true);
+});
+
+test("setReminderTime patches reminder", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.settings.setReminderTime, { userId: "dev-1", reminderTime: "morning" });
+  const s = await t.query(api.settings.getSettings, { userId: "dev-1" });
+  expect(s.reminderTime).toBe("morning");
+});
+
+test("deleteAccount removes the settings row (re-gates to onboarding)", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.settings.setSubscribed, { userId: "dev-1", subscribed: true });
+  await t.mutation(api.settings.deleteAccount, { userId: "dev-1" });
+  const s = await t.query(api.settings.getSettings, { userId: "dev-1" });
+  expect(s.onboarded).toBe(false);
+});

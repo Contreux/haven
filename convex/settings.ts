@@ -51,3 +51,21 @@ export const updateSettings = mutation({
     return await ctx.db.insert("settings", { userId, theme });
   },
 });
+
+export const updateAnswers = mutation({
+  args: { userId: v.string(), answers: v.string() },
+  handler: async (ctx, { userId, answers }) => await upsertSettings(ctx, userId, { answers }),
+});
+
+export const setReminderTime = mutation({
+  args: { userId: v.string(), reminderTime: v.string() },
+  handler: async (ctx, { userId, reminderTime }) => await upsertSettings(ctx, userId, { reminderTime }),
+});
+
+export const deleteAccount = mutation({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const row = await ctx.db.query("settings").withIndex("by_user", (q) => q.eq("userId", userId)).unique();
+    if (row) await ctx.db.delete(row._id);
+  },
+});

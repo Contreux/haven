@@ -125,3 +125,12 @@ test("getDays returns all the device's days, ascending, scoped", async () => {
   expect(days.length).toBe(2);
   expect(days.map((d: any) => d.date)).toEqual(["2026-06-12", "2026-06-14"]);
 });
+
+test("deleteAll removes every day doc for the user", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.seed.seed, { userId: "dev-1", today: "2026-06-15" });
+  await t.mutation(api.days.deleteAll, { userId: "dev-1" });
+  const rows = await t.run(async (ctx) =>
+    ctx.db.query("days").withIndex("by_user_date", (q) => q.eq("userId", "dev-1")).collect());
+  expect(rows.length).toBe(0);
+});
