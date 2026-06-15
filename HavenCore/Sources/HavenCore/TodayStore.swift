@@ -9,7 +9,7 @@ public final class TodayStore {
     public let weather: Weather
     public let today: String
 
-    private let source: DayDataSource
+    public let source: DayDataSource
 
     public init(source: DayDataSource, today: String) {
         self.source = source

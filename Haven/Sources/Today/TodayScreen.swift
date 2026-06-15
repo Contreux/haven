@@ -4,9 +4,9 @@ import HavenCore
 
 struct TodayScreen: View {
     @Environment(\.theme) private var theme
-    @Environment(ThemeController.self) private var controller
     @State private var store: TodayStore
-    @State private var editingFactors = false
+    @State private var activeSheet: LoggerKind?
+    @State private var dialOpen = false
 
     init(store: TodayStore) { _store = State(initialValue: store) }
 
@@ -20,12 +20,12 @@ struct TodayScreen: View {
                     HStack {
                         Text("Today's factors").havenText(.sectionHead, color: theme.ink)
                         Spacer()
-                        Button { editingFactors = true } label: {
+                        Button { activeSheet = .factors } label: {
                             Text("Edit").havenText(.meta, color: theme.accent)
                         }
                     }
-                    FactorRings(factors: store.day?.factors) { editingFactors = true }
-                    ActionButtons()
+                    FactorRings(factors: store.day?.factors) { activeSheet = .factors }
+                    ActionButtons(onLogMigraine: { activeSheet = .migraine }, onSnapMeal: { activeSheet = .food })
                     if let m = store.day?.migraine, m.had {
                         MigraineAlertCard(migraine: m)
                     }
@@ -37,22 +37,40 @@ struct TodayScreen: View {
                 .padding(Spacing.s6)
             }
             .overlay(alignment: .bottomTrailing) {
-                Button { controller.toggle() } label: {
-                    Image(systemName: controller.mode == .dark ? "sun.max.fill" : "moon.fill")
-                        .foregroundStyle(theme.ctaInk).padding(Spacing.s5)
-                        .background(theme.ctaBg, in: Circle())
-                }
-                .padding(Spacing.s6)
-                .accessibilityIdentifier("theme-toggle")
+                SpeedDial(isOpen: $dialOpen) { kind in activeSheet = kind }
+                    .padding(Spacing.s6)
             }
         }
         .task { store.start() }
-        .sheet(isPresented: $editingFactors) {
-            FactorEditor(initial: store.day?.factors) { factors in
-                try? await store.saveFactors(factors)
-            }
-            .environment(\.theme, theme)
+        .sheet(item: $activeSheet) { kind in
+            sheet(for: kind).environment(\.theme, theme)
         }
+    }
+
+    @ViewBuilder private func sheet(for kind: LoggerKind) -> some View {
+        switch kind {
+        case .migraine:
+            MigraineSheet(existing: store.day?.migraine,
+                          onSave: { try? await store.saveMigraine($0) },
+                          onRemove: { try? await store.removeMigraine() })
+        case .symptom:
+            SymptomSheet(existing: store.day?.symptoms ?? []) { try? await store.saveSymptoms($0) }
+        case .factors:
+            FactorsSheet(initial: store.day?.factors) { try? await store.saveFactors($0) }
+        case .food:
+            FoodCaptureSheet(analyze: { await store.analyze($0) }) { food, imageData in
+                await saveFood(food, imageData)
+            }
+        }
+    }
+
+    private func saveFood(_ food: FoodEntry, _ imageData: Data?) async {
+        var entry = food
+        if let imageData, let service = store.source as? ConvexService,
+           let id = try? await service.uploadImage(imageData) {
+            entry = FoodEntry(name: food.name, time: food.time, triggers: food.triggers, note: food.note, imageId: id)
+        }
+        try? await store.saveFood(entry)
     }
 
     private func prettyDate(_ ymd: String) -> String {
