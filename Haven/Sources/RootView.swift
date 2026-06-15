@@ -9,7 +9,7 @@ struct RootView: View {
     }()
 
     var body: some View {
-        TodayScreen(store: store)
+        RootTabView(store: store)
     }
 
     static func todayString() -> String {
