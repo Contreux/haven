@@ -27,6 +27,16 @@ final class ConvexService: DayDataSource {
             .store(in: &cancellables)
     }
 
+    func observeDays(onChange: @escaping ([DayLog]) -> Void) {
+        let publisher: AnyPublisher<[DayLog], ClientError> =
+            client.subscribe(to: "days:getDays", with: ["userId": userId], yielding: [DayLog].self)
+        publisher
+            .replaceError(with: [])
+            .receive(on: DispatchQueue.main)
+            .sink { value in onChange(value) }
+            .store(in: &cancellables)
+    }
+
     func setFactors(date: String, factors: Factors, loggedAt: String) async throws {
         let args: [String: ConvexEncodable?] = [
             "userId": userId,
