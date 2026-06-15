@@ -46,9 +46,12 @@ struct RootTabView: View {
     }
 
     private func navButton(_ t: Tab, system: String) -> some View {
-        Button { tab = t } label: {
+        let on = tab == t
+        return Button { tab = t } label: {
             Image(systemName: system).imageScale(.large)
-                .foregroundStyle(tab == t ? theme.tabActiveInk : theme.inkFaint)
+                .foregroundStyle(on ? theme.tabActiveInk : theme.inkFaint)   // cream on the pill / faint when inactive
+                .frame(width: 52, height: 34)
+                .background(on ? theme.tabActiveBg : Color.clear, in: Capsule())   // active pill makes the selected tab legible
                 .frame(maxWidth: .infinity, minHeight: 40)
                 .contentShape(Rectangle())
         }
