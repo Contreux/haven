@@ -52,9 +52,10 @@ export const analyzeFoodImage = action({
 export const scanMenu = action({
   args: { imageBase64: v.string(), suspected: v.optional(v.array(v.string())) },
   handler: async (_ctx, { imageBase64, suspected }) => {
+    const safeSuspected = (suspected ?? []).slice(0, 8).map((s) => s.slice(0, 24));
     const focus =
-      suspected && suspected.length > 0
-        ? `The user especially suspects these trigger categories: ${suspected.join(", ")}. Weight those higher when in doubt.\n`
+      safeSuspected.length > 0
+        ? `The user especially suspects these trigger categories: ${safeSuspected.join(", ")}. Weight those higher when in doubt.\n`
         : ``;
     const text =
       `This is a photo of a restaurant menu. List each distinct dish you can read. ` +
