@@ -2,12 +2,34 @@ appId: app.haven.Haven
 ---
 - launchApp
 - assertVisible: "Find what's been triggering your migraines."
-- takeScreenshot: m5-welcome
-- tapOn:
-    id: "ob-start"
+- tapOn: { id: "ob-start" }
 - assertVisible: "How often do migraines hit?"
 - tapOn: "Around 1 day a week"
-- tapOn:
-    id: "ob-next"
-- assertVisible: "How long have you lived with them?"
-- takeScreenshot: m5-question
+- tapOn: { id: "ob-next" }
+- tapOn: "1 to 3 years"
+- tapOn: { id: "ob-next" }
+- tapOn: "25 – 34"
+- tapOn: { id: "ob-next" }
+- tapOn: "Male"
+- tapOn: { id: "ob-next" }
+- assertVisible: "Do you get aura?"
+- tapOn: "Sometimes"
+- tapOn: { id: "ob-next" }
+- tapOn: "Nausea"
+- tapOn: { id: "ob-next" }
+- tapOn: "I have to slow right down"
+- tapOn: { id: "ob-next" }
+- tapOn: "Alcohol"
+- tapOn: { id: "ob-next" }
+- tapOn: "Nothing yet"
+- tapOn: { id: "ob-next" }
+- tapOn: "Pinpoint my triggers"
+- tapOn: { id: "ob-next" }
+- assertVisible: "Here's what we'll build on."
+- tapOn: { id: "ob-synth-next" }
+- assertVisible: "Let Haven watch the weather for you"
+- tapOn: "Not now"
+- assertVisible: "One gentle nudge a day"
+- tapOn: "Maybe later"
+- assertVisible: "Start finding your triggers"
+- takeScreenshot: m5-paywall
