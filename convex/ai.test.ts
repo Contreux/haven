@@ -12,3 +12,10 @@ test("analyzeFood throws when no API key is configured", async () => {
     t.action(api.ai.analyzeFood, { description: "aged cheddar toastie" }),
   ).rejects.toThrow();
 });
+
+test("analyzeFoodImage throws when no API key is configured", async () => {
+  const t = convexTest(schema, modules);
+  await expect(
+    t.action(api.ai.analyzeFoodImage, { imageBase64: "QUJD" }),
+  ).rejects.toThrow();
+});
