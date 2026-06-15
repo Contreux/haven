@@ -1,0 +1,26 @@
+appId: app.haven.Haven
+---
+- launchApp
+- tapOn:
+    id: "open-profile"
+- assertVisible: "Your profile"
+- tapOn:
+    id: "profile-row-frequency"
+- assertVisible: "How often do migraines hit?"
+- tapOn:
+    id: "ob-next"
+- assertVisible: "Your profile"
+- scrollUntilVisible:
+    element:
+      id: "profile-delete"
+    direction: DOWN
+- tapOn:
+    id: "profile-delete"
+- assertVisible: "Delete all your data?"
+- tapOn:
+    point: "50%,8%"
+- scrollUntilVisible:
+    element:
+      text: "Your profile"
+    direction: UP
+- assertVisible: "Your profile"
