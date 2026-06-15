@@ -26,9 +26,12 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.haven.Haven
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.0"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # No non-exempt encryption beyond Apple's exempt HTTPS — skips the per-build ASC question.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "NO"
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Haven warns you on high-risk weather days before a migraine."
         # convex-swift's Rust xcframework ships arm64-only for the simulator.
         # Exclude x86_64 so simulator builds link on Apple Silicon.

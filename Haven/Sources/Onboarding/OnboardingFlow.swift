@@ -40,9 +40,11 @@ struct OnboardingFlow: View {
                 PermWeatherScreen(onEnable: { Task { if let c = await loc.request() { lat = c.latitude; lon = c.longitude }; step = .permReminders } },
                                   onSkip: { step = .permReminders })
             case .permReminders:
+                // v1 ships free: skip the paywall and finish onboarding directly.
+                // The `.paywall` case below is retained for v1.1 when subscriptions go live.
                 PermRemindersScreen(time: $reminderTime,
-                    onEnable: { Task { _ = await Reminders.enable(); Reminders.schedule(hour: 18, minute: 0); step = .paywall } },
-                    onSkip: { step = .paywall })
+                    onEnable: { Task { _ = await Reminders.enable(); Reminders.schedule(hour: 18, minute: 0); await finish(subscribed: false) } },
+                    onSkip: { Task { await finish(subscribed: false) } })
             case .paywall:
                 PaywallScreen(store: storeKit,
                     onSubscribe: { id in Task { await subscribe(id) } },
