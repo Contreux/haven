@@ -113,6 +113,13 @@ final class ConvexService: DayDataSource {
         return result
     }
 
+    func scanMenu(imageBase64: String, suspected: [String]) async throws -> MenuScan {
+        var args: [String: ConvexEncodable?] = ["imageBase64": imageBase64]
+        if !suspected.isEmpty { args["suspected"] = suspected as [ConvexEncodable?] }
+        let result: MenuScan = try await client.action("ai:scanMenu", with: args)
+        return result
+    }
+
     func fetchWeather(lat: Double, lon: Double) async throws -> Weather {
         let result: Weather = try await client.action("weather:fetchWeather", with: ["lat": lat, "lon": lon])
         return result
