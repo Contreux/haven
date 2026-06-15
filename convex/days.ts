@@ -44,3 +44,39 @@ export const setFactors = mutation({
     });
   },
 });
+
+const migraineArg = v.object({
+  had: v.boolean(),
+  severity: v.string(),
+  time: v.string(),
+  notes: v.string(),
+});
+
+// Find-or-create the day row for (userId, date); returns the existing doc or null.
+async function findDay(ctx: any, userId: string, date: string) {
+  return await ctx.db
+    .query("days")
+    .withIndex("by_user_date", (q: any) => q.eq("userId", userId).eq("date", date))
+    .unique();
+}
+
+export const setMigraine = mutation({
+  args: { userId: v.string(), date: v.string(), migraine: migraineArg },
+  handler: async (ctx, { userId, date, migraine }) => {
+    const existing = await findDay(ctx, userId, date);
+    if (existing) {
+      await ctx.db.patch(existing._id, { migraine });
+      return existing._id;
+    }
+    return await ctx.db.insert("days", { userId, date, migraine, symptoms: [], foods: [] });
+  },
+});
+
+export const removeMigraine = mutation({
+  args: { userId: v.string(), date: v.string() },
+  handler: async (ctx, { userId, date }) => {
+    const existing = await findDay(ctx, userId, date);
+    if (existing) await ctx.db.patch(existing._id, { migraine: { had: false, severity: "", time: "", notes: "" } });
+    return existing?._id ?? null;
+  },
+});

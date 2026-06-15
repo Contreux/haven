@@ -56,3 +56,25 @@ test("setFactors updates the existing day in place (no duplicate)", async () => 
   expect(all[0].factors?.sleepHours).toBe(8);
   expect(all[0].factorsLoggedAt).toBe("10:15");
 });
+
+test("setMigraine upserts the day's migraine", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.days.setMigraine, {
+    userId: "dev-1", date: "2026-06-14",
+    migraine: { had: true, severity: "Moderate", time: "15:10", notes: "left eye" },
+  });
+  const day = await t.query(api.days.getDay, { userId: "dev-1", date: "2026-06-14" });
+  expect(day?.migraine?.had).toBe(true);
+  expect(day?.migraine?.severity).toBe("Moderate");
+});
+
+test("removeMigraine clears it", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.days.setMigraine, {
+    userId: "dev-1", date: "2026-06-14",
+    migraine: { had: true, severity: "Mild", time: "10:00", notes: "" },
+  });
+  await t.mutation(api.days.removeMigraine, { userId: "dev-1", date: "2026-06-14" });
+  const day = await t.query(api.days.getDay, { userId: "dev-1", date: "2026-06-14" });
+  expect(day?.migraine?.had ?? false).toBe(false);
+});
