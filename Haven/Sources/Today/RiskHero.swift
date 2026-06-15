@@ -26,7 +26,9 @@ struct RiskHero: View {
         HStack(alignment: .bottom, spacing: Spacing.s1) {
             ForEach(0..<4, id: \.self) { i in
                 RoundedRectangle(cornerRadius: Radius.xs)
-                    .fill(i < weather.bars ? theme.risk : theme.track)
+                    // Empty bars use the card's ink (legible on riskBg in both themes);
+                    // theme.track is dark-on-dark here and disappears in dark mode.
+                    .fill(i < weather.bars ? theme.risk : theme.riskInk.opacity(0.22))
                     .frame(width: Spacing.s2, height: Spacing.s3 + CGFloat(i) * Spacing.s2)
             }
         }
