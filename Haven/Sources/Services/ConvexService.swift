@@ -122,6 +122,16 @@ final class ConvexService: DayDataSource {
     func setSubscribed(_ subscribed: Bool) async throws {
         try await client.mutation("settings:setSubscribed", with: ["userId": userId, "subscribed": subscribed])
     }
+    func updateAnswers(_ json: String) async throws {
+        try await client.mutation("settings:updateAnswers", with: ["userId": userId, "answers": json])
+    }
+    func setReminderTime(_ time: String) async throws {
+        try await client.mutation("settings:setReminderTime", with: ["userId": userId, "reminderTime": time])
+    }
+    func deleteMyData() async throws {
+        try await client.mutation("days:deleteAll", with: ["userId": userId])
+        try await client.mutation("settings:deleteAccount", with: ["userId": userId])
+    }
     func validateSubscription(transactionId: String) async throws {
         try await client.action("billing:validateSubscription", with: ["userId": userId, "transactionId": transactionId])
     }

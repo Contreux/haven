@@ -4,19 +4,25 @@ import HavenCore
 
 struct RootTabView: View {
     @Environment(\.theme) private var theme
+    @Environment(ThemeController.self) private var themeController
     @State private var store: TodayStore
     @State private var tab: Tab = .today
     @State private var activeSheet: LoggerKind?
     @State private var dialOpen = false
+    @State private var showProfile = false
+    var onDataDeleted: () -> Void = {}
 
     enum Tab { case today, calendar, insights, weather }
 
-    init(store: TodayStore) { _store = State(initialValue: store) }
+    init(store: TodayStore, onDataDeleted: @escaping () -> Void = {}) {
+        _store = State(initialValue: store)
+        self.onDataDeleted = onDataDeleted
+    }
 
     var body: some View {
         Group {
             switch tab {
-            case .today: TodayScreen(store: store, onLogger: { activeSheet = $0 })
+            case .today: TodayScreen(store: store, onLogger: { activeSheet = $0 }, onProfile: { showProfile = true })
             case .calendar: CalendarScreen(store: store)
             case .insights: InsightsScreen(store: store)
             case .weather: WeatherScreen(weather: store.weather)
@@ -25,6 +31,13 @@ struct RootTabView: View {
         .safeAreaInset(edge: .bottom) { bottomNav }   // insets content so nothing hides behind the bar
         .task { store.start() }
         .sheet(item: $activeSheet) { kind in sheet(for: kind).environment(\.theme, theme) }
+        .fullScreenCover(isPresented: $showProfile) {
+            if let service = store.source as? ConvexService {
+                ProfileScreen(source: service, onDataDeleted: { showProfile = false; onDataDeleted() })
+                    .environment(\.theme, theme)
+                    .environment(themeController)
+            }
+        }
         .overlay(alignment: .bottom) { if dialOpen { fanOverlay } }
     }
 

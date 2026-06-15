@@ -70,8 +70,7 @@ struct OnboardingFlow: View {
     }
 
     private func finish(subscribed: Bool) async {
-        let json = (try? JSONSerialization.data(withJSONObject: answers)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-        try? await service.completeOnboarding(answersJSON: json, reminderTime: reminderTime, lat: lat, lon: lon)
+        try? await service.completeOnboarding(answersJSON: answersJSON(from: answers), reminderTime: reminderTime, lat: lat, lon: lon)
         step = .done
     }
 }

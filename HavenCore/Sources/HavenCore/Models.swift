@@ -65,7 +65,13 @@ public struct Settings: Codable, Sendable, Equatable {
     public let theme: String
     public let onboarded: Bool
     public let subscribed: Bool
-    public init(theme: String, onboarded: Bool = false, subscribed: Bool = false) {
+    public let answers: String
+    public let reminderTime: String
+    public let lat: Double?
+    public let lon: Double?
+    public init(theme: String, onboarded: Bool = false, subscribed: Bool = false,
+                answers: String = "", reminderTime: String = "", lat: Double? = nil, lon: Double? = nil) {
         self.theme = theme; self.onboarded = onboarded; self.subscribed = subscribed
+        self.answers = answers; self.reminderTime = reminderTime; self.lat = lat; self.lon = lon
     }
 }

@@ -11,7 +11,7 @@ struct RootView: View {
         Group {
             if let isOnboarded = onboarded {
                 if isOnboarded, let store {
-                    RootTabView(store: store)
+                    RootTabView(store: store, onDataDeleted: { onboarded = false })
                 } else {
                     OnboardingFlow(service: service, onFinished: { onboarded = true })
                 }

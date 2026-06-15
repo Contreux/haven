@@ -89,6 +89,10 @@ final class FakeSource: DayDataSource {
     func getSettings() async throws -> Settings { settings }
     func setSubscribed(_ subscribed: Bool) async throws { settings = Settings(theme: settings.theme, onboarded: settings.onboarded, subscribed: subscribed) }
     func validateSubscription(transactionId: String) async throws {}
+    private(set) var updatedAnswers: String?
+    func updateAnswers(_ json: String) async throws { updatedAnswers = json }
+    func setReminderTime(_ time: String) async throws { settings = Settings(theme: settings.theme, onboarded: settings.onboarded, subscribed: settings.subscribed, answers: settings.answers, reminderTime: time) }
+    func deleteMyData() async throws { settings = Settings(theme: settings.theme) }
 }
 
 @Suite @MainActor struct TodayStoreTests {
