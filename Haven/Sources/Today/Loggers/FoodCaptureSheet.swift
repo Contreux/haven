@@ -7,6 +7,7 @@ struct FoodCaptureSheet: View {
     @Environment(\.theme) private var theme
     @Environment(\.dismiss) private var dismiss
     let analyze: (String) async -> AnalyzedFood
+    let analyzeImage: (Data, String) async -> AnalyzedFood
     let onSave: (FoodEntry, Data?) async -> Void
 
     enum Mode { case describe, photo }
@@ -53,7 +54,11 @@ struct FoodCaptureSheet: View {
                         .foregroundStyle(theme.inkSoft)
                 }
                 .onChange(of: photoItem) { _, item in
-                    Task { imageData = try? await item?.loadTransferable(type: Data.self) }
+                    Task {
+                        if let raw = try? await item?.loadTransferable(type: Data.self) {
+                            imageData = ImageScaler.downscaledJPEG(raw)
+                        }
+                    }
                 }
                 if imageData != nil {
                     Text("Photo attached").havenText(.meta, color: theme.inkSoft)
@@ -65,8 +70,13 @@ struct FoodCaptureSheet: View {
             Button {
                 busy = true
                 Task {
-                    let text = desc.isEmpty ? "the meal in the photo" : desc
-                    result = await analyze(text); busy = false
+                    if mode == .photo, let data = imageData {
+                        result = await analyzeImage(data, desc)
+                    } else {
+                        let text = desc.isEmpty ? "the meal in the photo" : desc
+                        result = await analyze(text)
+                    }
+                    busy = false
                 }
             } label: {
                 HStack { if busy { ProgressView() }; Text(busy ? "Analyzing" : "Analyze").havenText(.sectionHead, color: theme.ctaInk) }
@@ -84,6 +94,16 @@ struct FoodCaptureSheet: View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
             Text(r.label).havenText(.sectionHead, color: theme.ink)
             if !r.note.isEmpty { Text(r.note).havenText(.meta, color: theme.inkSoft) }
+            if !r.items.isEmpty {
+                Text("ITEMS DETECTED").havenText(.eyebrow, color: theme.inkFaint)
+                ForEach(r.items, id: \.self) { item in
+                    HStack(spacing: Spacing.s3) {
+                        Image(systemName: "fork.knife").foregroundStyle(theme.inkSoft)
+                        Text(item).havenText(.body, color: theme.ink)
+                    }
+                    .padding(.vertical, Spacing.s1)
+                }
+            }
             Text("TRIGGERS DETECTED").havenText(.eyebrow, color: theme.inkFaint)
             if r.triggers.isEmpty {
                 HStack { Image(systemName: "checkmark.circle"); Text("No obvious dietary triggers").havenText(.body, color: theme.inkSoft) }

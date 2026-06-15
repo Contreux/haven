@@ -2,10 +2,18 @@ import Foundation
 
 public struct AnalyzedFood: Codable, Sendable, Equatable {
     public let label: String
+    public let items: [String]
     public let triggers: [TriggerChip]
     public let note: String
-    public init(label: String, triggers: [TriggerChip], note: String) {
-        self.label = label; self.triggers = triggers; self.note = note
+    public init(label: String, items: [String] = [], triggers: [TriggerChip], note: String) {
+        self.label = label; self.items = items; self.triggers = triggers; self.note = note
+    }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        label = try c.decode(String.self, forKey: .label)
+        items = (try? c.decode([String].self, forKey: .items)) ?? []
+        triggers = try c.decode([TriggerChip].self, forKey: .triggers)
+        note = try c.decode(String.self, forKey: .note)
     }
 }
 

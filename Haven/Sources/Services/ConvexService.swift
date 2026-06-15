@@ -106,6 +106,13 @@ final class ConvexService: DayDataSource {
         return result
     }
 
+    func analyzeFoodImage(imageBase64: String, hint: String) async throws -> AnalyzedFood {
+        var args: [String: ConvexEncodable?] = ["imageBase64": imageBase64]
+        if !hint.isEmpty { args["hint"] = hint }
+        let result: AnalyzedFood = try await client.action("ai:analyzeFoodImage", with: args)
+        return result
+    }
+
     func fetchWeather(lat: Double, lon: Double) async throws -> Weather {
         let result: Weather = try await client.action("weather:fetchWeather", with: ["lat": lat, "lon": lon])
         return result

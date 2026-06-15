@@ -76,6 +76,12 @@ final class FakeSource: DayDataSource {
         if analyzeShouldThrow { throw NSError(domain: "x", code: 1) }
         return analyzeResult
     }
+    var imageAnalysisResult = AnalyzedFood(label: "Photo meal", items: ["Item"], triggers: [], note: "")
+    var imageAnalysisShouldThrow = false
+    func analyzeFoodImage(imageBase64: String, hint: String) async throws -> AnalyzedFood {
+        if imageAnalysisShouldThrow { throw NSError(domain: "x", code: 1) }
+        return imageAnalysisResult
+    }
 
     var weatherResult: Weather?
     var weatherShouldThrow = false
