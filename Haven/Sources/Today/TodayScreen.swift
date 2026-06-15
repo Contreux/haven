@@ -48,7 +48,7 @@ struct TodayScreen: View {
         }
         .task { store.start() }
         .sheet(isPresented: $editingFactors) {
-            FactorEditor(initial: store.day?.factors) { factors in
+            FactorsSheet(initial: store.day?.factors) { factors in
                 try? await store.saveFactors(factors)
             }
             .environment(\.theme, theme)
