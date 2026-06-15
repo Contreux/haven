@@ -1,7 +1,7 @@
 import SwiftUI
 import HavenDesignSystem
 
-enum LoggerKind: String, Identifiable { case food, migraine, symptom, factors; var id: String { rawValue } }
+enum LoggerKind: String, Identifiable { case food, migraine, symptom, factors, menu; var id: String { rawValue } }
 
 struct SpeedDial: View {
     @Environment(\.theme) private var theme

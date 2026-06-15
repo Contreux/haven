@@ -83,6 +83,15 @@ final class FakeSource: DayDataSource {
         return imageAnalysisResult
     }
 
+    var menuScanResult = MenuScan(dishes: [])
+    var menuScanShouldThrow = false
+    private(set) var lastSuspected: [String]?
+    func scanMenu(imageBase64: String, suspected: [String]) async throws -> MenuScan {
+        lastSuspected = suspected
+        if menuScanShouldThrow { throw NSError(domain: "x", code: 1) }
+        return menuScanResult
+    }
+
     var weatherResult: Weather?
     var weatherShouldThrow = false
     func fetchWeather(lat: Double, lon: Double) async throws -> Weather {
@@ -179,5 +188,23 @@ final class FakeSource: DayDataSource {
         #expect(store.insights.migraineDays == 1)
         let cal = store.calendar(year: 2026, month: 6)
         #expect(cal.cells.contains { $0.day == 15 && $0.isToday })
+    }
+
+    @Test func scanMenuPassesSuspectedFromAnswersAndReturnsResult() async {
+        let source = FakeSource(day: nil)
+        source.settings = Settings(theme: "dark", onboarded: true, answers: #"{"triggers":["caffeine","alcohol","unsure"]}"#)
+        source.menuScanResult = MenuScan(dishes: [MenuDish(name: "Latte", verdict: .avoid, triggers: ["caffeine"])])
+        let store = TodayStore(source: source, today: "2026-06-15")
+        let scan = await store.scanMenu(imageBase64: "abc")
+        #expect(scan.dishes.first?.name == "Latte")
+        #expect(source.lastSuspected == ["caffeine", "alcohol"])   // "unsure" filtered out
+    }
+
+    @Test func scanMenuReturnsEmptyOnError() async {
+        let source = FakeSource(day: nil)
+        source.menuScanShouldThrow = true
+        let store = TodayStore(source: source, today: "2026-06-15")
+        let scan = await store.scanMenu(imageBase64: "abc")
+        #expect(scan.dishes.isEmpty)
     }
 }
