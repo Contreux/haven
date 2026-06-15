@@ -24,6 +24,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.haven.Haven
+        DEVELOPMENT_TEAM: 34STU5HY7K
+        CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
         MARKETING_VERSION: "1.0.0"
