@@ -14,43 +14,43 @@ struct RootTabView: View {
     init(store: TodayStore) { _store = State(initialValue: store) }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                switch tab {
-                case .today: TodayScreen(store: store, onLogger: { activeSheet = $0 })
-                case .calendar: CalendarScreen(store: store)
-                case .insights: InsightsScreen(store: store)
-                case .weather: WeatherPlaceholder()
-                }
+        Group {
+            switch tab {
+            case .today: TodayScreen(store: store, onLogger: { activeSheet = $0 })
+            case .calendar: CalendarScreen(store: store)
+            case .insights: InsightsScreen(store: store)
+            case .weather: WeatherPlaceholder()
             }
-            bottomNav
         }
+        .safeAreaInset(edge: .bottom) { bottomNav }   // insets content so nothing hides behind the bar
         .task { store.start() }
         .sheet(item: $activeSheet) { kind in sheet(for: kind).environment(\.theme, theme) }
         .overlay(alignment: .bottomTrailing) {
             SpeedDial(isOpen: $dialOpen) { kind in activeSheet = kind }
-                .padding(.trailing, Spacing.s6).padding(.bottom, 84)
+                .padding(.trailing, Spacing.s6).padding(.bottom, 96)
         }
     }
 
     private var bottomNav: some View {
-        HStack {
+        HStack(spacing: 0) {
             navButton(.today, system: "house")
             navButton(.calendar, system: "calendar")
             Spacer().frame(width: 56) // center speed-dial gap
             navButton(.insights, system: "chart.bar")
             navButton(.weather, system: "cloud")
         }
-        .padding(.horizontal, Spacing.s7).padding(.vertical, Spacing.s4)
-        .background(theme.tabbarBg)
+        .padding(.horizontal, Spacing.s6)
+        .padding(.top, Spacing.s4)
+        .background(theme.tabbarBg.ignoresSafeArea(edges: .bottom))
         .accessibilityIdentifier("bottom-nav")
     }
 
     private func navButton(_ t: Tab, system: String) -> some View {
         Button { tab = t } label: {
-            Image(systemName: system)
+            Image(systemName: system).imageScale(.large)
                 .foregroundStyle(tab == t ? theme.tabActiveInk : theme.inkFaint)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, minHeight: 40)
+                .contentShape(Rectangle())
         }
         .accessibilityIdentifier("tab-\(label(t))")
     }
