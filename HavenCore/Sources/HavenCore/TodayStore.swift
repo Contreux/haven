@@ -10,8 +10,10 @@ public final class TodayStore {
     public private(set) var weather: Weather
     public let today: String
 
-    /// Default location (M5 onboarding will set a real one).
-    public var location: (lat: Double, lon: Double) = (51.51, -0.13)
+    /// Default location (M5 onboarding will set a real one). Changing it re-fetches weather.
+    public var location: (lat: Double, lon: Double) = (51.51, -0.13) {
+        didSet { Task { await loadWeather() } }
+    }
 
     public let source: DayDataSource
 

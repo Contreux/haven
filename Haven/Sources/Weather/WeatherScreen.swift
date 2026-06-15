@@ -17,7 +17,7 @@ struct WeatherScreen: View {
                         cell(icon: "gauge", k: "Pressure swing", v: "\(weather.swing)", unit: "hPa", t: trendLabel, spark: weather.pressureTrend)
                         cell(icon: "thermometer", k: "Temp swing", v: "\(weather.tempSwing)", unit: "°", t: "Now \(weather.temp)°", spark: [])
                         cell(icon: "drop", k: "Humidity", v: "\(weather.humidity)", unit: "%", t: "Logged, not led on", spark: [])
-                        cell(icon: "wind", k: "Wind", v: "—", unit: "mph", t: "Light", spark: [])
+                        cell(icon: "wind", k: "Wind", v: weather.wind.map { "\($0)" } ?? "—", unit: "mph", t: "Light", spark: [])
                     }
                     noteCard
                 }.padding(Spacing.s6)

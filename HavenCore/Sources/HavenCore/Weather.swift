@@ -7,18 +7,20 @@ public struct Weather: Codable, Sendable, Equatable {
     public let tempSwing: Int        // °, magnitude of change
     public let humidity: Int         // %
     public let temp: Int             // current °
+    public let wind: Int?            // mph (optional — older payloads omit it)
     public let trend: String         // contract: "rising" | "falling" | "steady" (stub emits rising/falling only)
     public let headline: String
     public let detail: String
     public let pressureTrend: [Double]
 
-    public init(level: Level, bars: Int, swing: Int, tempSwing: Int, humidity: Int, temp: Int, trend: String, headline: String, detail: String, pressureTrend: [Double]) {
+    public init(level: Level, bars: Int, swing: Int, tempSwing: Int, humidity: Int, temp: Int, wind: Int? = nil, trend: String, headline: String, detail: String, pressureTrend: [Double]) {
         self.level = level
         self.bars = bars
         self.swing = swing
         self.tempSwing = tempSwing
         self.humidity = humidity
         self.temp = temp
+        self.wind = wind
         self.trend = trend
         self.headline = headline
         self.detail = detail
@@ -51,7 +53,7 @@ public enum WeatherStub {
         return Weather(
             level: level, bars: bars, swing: bars * 3,
             tempSwing: 4 + (seed % 6), humidity: 55 + (seed % 30),
-            temp: 14 + (seed % 12), trend: seed % 2 == 0 ? "falling" : "rising",
+            temp: 14 + (seed % 12), wind: 6 + (seed % 12), trend: seed % 2 == 0 ? "falling" : "rising",
             headline: headline, detail: detail, pressureTrend: pressureTrend)
     }
 }
