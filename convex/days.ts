@@ -118,7 +118,7 @@ export const removeFood = mutation({
   handler: async (ctx, { userId, date, foodIndex }) => {
     const existing = await findDay(ctx, userId, date);
     if (!existing) return null;
-    const foods = existing.foods.filter((_, i) => i !== foodIndex);
+    const foods = existing.foods.filter((_: unknown, i: number) => i !== foodIndex);
     await ctx.db.patch(existing._id, { foods });
     return existing._id;
   },
