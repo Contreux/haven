@@ -76,6 +76,13 @@ final class FakeSource: DayDataSource {
         if analyzeShouldThrow { throw NSError(domain: "x", code: 1) }
         return analyzeResult
     }
+
+    var weatherResult: Weather?
+    var weatherShouldThrow = false
+    func fetchWeather(lat: Double, lon: Double) async throws -> Weather {
+        if weatherShouldThrow { throw NSError(domain: "x", code: 1) }
+        return weatherResult ?? WeatherStub.weather(for: "2026-06-15")
+    }
 }
 
 @Suite @MainActor struct TodayStoreTests {
@@ -126,6 +133,17 @@ final class FakeSource: DayDataSource {
         src.analyzeShouldThrow = true
         let fb = await store.analyze("aged cheddar") // falls back to on-device engine
         #expect(fb.triggers.contains { $0.label == "Aged cheese" })
+    }
+
+    @Test func loadWeatherUsesActionThenFallsBack() async {
+        let src = FakeSource(day: nil)
+        src.weatherResult = Weather(level: .high, bars: 3, swing: 9, tempSwing: 7, humidity: 70, temp: 17, trend: "falling", headline: "Pressure dropping 9 hPa", detail: "x", pressureTrend: [1015, 1013, 1011])
+        let store = TodayStore(source: src, today: "2026-06-15")
+        await store.loadWeather()
+        #expect(store.weather.swing == 9)        // action path
+        src.weatherShouldThrow = true
+        await store.loadWeather()
+        #expect(store.weather.headline.isEmpty == false)  // fell back to stub, still valid
     }
 
     @Test func loadsAllDaysAndComputesStreakAndInsights() {

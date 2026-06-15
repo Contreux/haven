@@ -13,6 +13,7 @@ import type * as days from "../days.js";
 import type * as files from "../files.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
+import type * as weather from "../weather.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   seed: typeof seed;
   settings: typeof settings;
+  weather: typeof weather;
 }>;
 
 /**

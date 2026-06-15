@@ -7,8 +7,13 @@ public final class TodayStore {
     public private(set) var day: DayLog?
     public private(set) var ledger: [LedgerEntry] = []
     public private(set) var allDays: [DayLog] = []
-    public let weather: Weather
+    public private(set) var weather: Weather
     public let today: String
+
+    /// Default location (M5 onboarding will set a real one). Changing it re-fetches weather.
+    public var location: (lat: Double, lon: Double) = (51.51, -0.13) {
+        didSet { Task { await loadWeather() } }
+    }
 
     public let source: DayDataSource
 
@@ -30,6 +35,12 @@ public final class TodayStore {
         source.observeDays { [weak self] days in
             self?.allDays = days
         }
+        Task { await loadWeather() }
+    }
+
+    public func loadWeather() async {
+        do { weather = try await source.fetchWeather(lat: location.lat, lon: location.lon) }
+        catch { weather = WeatherStub.weather(for: today) }
     }
 
     public var streak: Int { HavenCore.streak(loggedDates: allDays.map(\.date), asOf: today) }

@@ -1,0 +1,10 @@
+appId: app.haven.Haven
+---
+- launchApp
+- assertVisible: "Today"
+- tapOn:
+    point: "87%,95%"
+- assertVisible: "Weather"
+- assertVisible: "Pressure swing"
+- assertVisible: "Why this matters"
+- takeScreenshot: m4-weather

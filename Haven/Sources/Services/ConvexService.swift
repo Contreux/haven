@@ -100,6 +100,11 @@ final class ConvexService: DayDataSource {
         return result
     }
 
+    func fetchWeather(lat: Double, lon: Double) async throws -> Weather {
+        let result: Weather = try await client.action("weather:fetchWeather", with: ["lat": lat, "lon": lon])
+        return result
+    }
+
     /// Upload image bytes to Convex storage, returning the storage id (or nil on failure).
     func uploadImage(_ data: Data) async throws -> String? {
         let uploadURL: String = try await client.mutation("files:generateUploadUrl", with: [:])
