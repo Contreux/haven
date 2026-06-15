@@ -1,0 +1,13 @@
+appId: app.haven.Haven
+---
+- launchApp
+- assertVisible: "Find what's been triggering your migraines."
+- takeScreenshot: m5-welcome
+- tapOn:
+    id: "ob-start"
+- assertVisible: "How often do migraines hit?"
+- tapOn: "Around 1 day a week"
+- tapOn:
+    id: "ob-next"
+- assertVisible: "How long have you lived with them?"
+- takeScreenshot: m5-question
