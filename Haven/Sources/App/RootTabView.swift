@@ -72,6 +72,7 @@ struct RootTabView: View {
     private let loggerItems: [(LoggerKind, String, String)] = [
         (.food, "Food", "camera"), (.migraine, "Migraine", "bolt.heart"),
         (.symptom, "Symptom", "eye"), (.factors, "Daily factors", "moon"),
+        (.menu, "Scan menu", "doc.text.viewfinder"),
     ]
 
     // Dimmed/blurred backdrop + centered dark pills with cream labels + orange icons, per the design.
@@ -121,6 +122,9 @@ struct RootTabView: View {
             analyze: { await store.analyze($0) },
             analyzeImage: { data, hint in await store.analyzeImage(imageBase64: data.base64EncodedString(), hint: hint) },
             onSave: { food, imageData in await saveFood(food, imageData) })
+        case .menu: MenuScanSheet(
+            scanMenu: { data in await store.scanMenu(imageBase64: data.base64EncodedString()) },
+            onLog: { food in try? await store.saveFood(food) })
         }
     }
     private func saveFood(_ food: FoodEntry, _ imageData: Data?) async {
