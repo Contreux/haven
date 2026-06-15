@@ -6,12 +6,15 @@ const level = v.union(v.literal("low"), v.literal("mid"), v.literal("high"));
 const triggerChip = v.object({
   label: v.string(),
   level: level,
+  reason: v.optional(v.string()),
 });
 
 const foodEntry = v.object({
   name: v.string(),
   time: v.string(), // "HH:mm"
   triggers: v.array(triggerChip),
+  note: v.optional(v.string()),
+  imageId: v.optional(v.id("_storage")),
 });
 
 export default defineSchema({

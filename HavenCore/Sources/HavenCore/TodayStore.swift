@@ -33,4 +33,20 @@ public final class TodayStore {
     public func saveFactors(_ factors: Factors, at time: String? = nil) async throws {
         try await source.setFactors(date: today, factors: factors, loggedAt: time ?? Self.nowHM())
     }
+
+    public func saveMigraine(_ migraine: Migraine) async throws {
+        try await source.setMigraine(date: today, migraine: migraine)
+    }
+    public func removeMigraine() async throws { try await source.removeMigraine(date: today) }
+    public func saveSymptoms(_ symptoms: [String], at time: String? = nil) async throws {
+        try await source.setSymptoms(date: today, symptoms: symptoms, loggedAt: time ?? Self.nowHM())
+    }
+    public func saveFood(_ food: FoodEntry) async throws { try await source.addFood(date: today, food: food) }
+    public func removeFood(at index: Int) async throws { try await source.removeFood(date: today, foodIndex: index) }
+
+    /// Two-tier: try the server action; on any error fall back to the on-device engine.
+    public func analyze(_ description: String) async -> AnalyzedFood {
+        do { return try await source.analyzeFood(description: description) }
+        catch { return TriggerEngine.analyze(description) }
+    }
 }

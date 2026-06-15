@@ -7,14 +7,25 @@ public enum Level: String, Codable, Sendable, Equatable {
 public struct TriggerChip: Codable, Sendable, Equatable, Identifiable {
     public let label: String
     public let level: Level
+    public let reason: String?
     // Composite so two same-label triggers (different level) don't collide in ForEach.
     public var id: String { "\(label)-\(level.rawValue)" }
+
+    public init(label: String, level: Level, reason: String? = nil) {
+        self.label = label; self.level = level; self.reason = reason
+    }
 }
 
 public struct FoodEntry: Codable, Sendable, Equatable {
     public let name: String
     public let time: String          // "HH:mm"
     public let triggers: [TriggerChip]
+    public let note: String?
+    public let imageId: String?
+
+    public init(name: String, time: String, triggers: [TriggerChip], note: String? = nil, imageId: String? = nil) {
+        self.name = name; self.time = time; self.triggers = triggers; self.note = note; self.imageId = imageId
+    }
 }
 
 public struct Factors: Codable, Sendable, Equatable {

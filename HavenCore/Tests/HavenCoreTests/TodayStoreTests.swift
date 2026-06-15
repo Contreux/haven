@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import HavenCore
 
 @MainActor
@@ -20,6 +21,54 @@ final class FakeSource: DayDataSource {
                      migraine: prev?.migraine, symptoms: prev?.symptoms ?? [],
                      symptomsLoggedAt: prev?.symptomsLoggedAt, foods: prev?.foods ?? [])
         onChange?(day)   // simulate Convex pushing the update back
+    }
+
+    private(set) var savedMigraine: Migraine?
+    private(set) var savedSymptoms: [String]?
+    private(set) var savedFoods: [FoodEntry] = []
+    var analyzeResult: AnalyzedFood = AnalyzedFood(label: "X", triggers: [], note: "n")
+    var analyzeShouldThrow = false
+
+    func setMigraine(date: String, migraine: Migraine) async throws {
+        savedMigraine = migraine
+        let prev = day
+        day = DayLog(userId: "d", date: date, factors: prev?.factors, factorsLoggedAt: prev?.factorsLoggedAt,
+                     migraine: migraine, symptoms: prev?.symptoms ?? [], symptomsLoggedAt: prev?.symptomsLoggedAt, foods: prev?.foods ?? [])
+        onChange?(day)
+    }
+    func removeMigraine(date: String) async throws {
+        savedMigraine = nil
+        let prev = day
+        day = DayLog(userId: "d", date: date, factors: prev?.factors, factorsLoggedAt: prev?.factorsLoggedAt,
+                     migraine: nil, symptoms: prev?.symptoms ?? [], symptomsLoggedAt: prev?.symptomsLoggedAt, foods: prev?.foods ?? [])
+        onChange?(day)
+    }
+    func setSymptoms(date: String, symptoms: [String], loggedAt: String) async throws {
+        savedSymptoms = symptoms
+        let prev = day
+        day = DayLog(userId: "d", date: date, factors: prev?.factors, factorsLoggedAt: prev?.factorsLoggedAt,
+                     migraine: prev?.migraine, symptoms: symptoms, symptomsLoggedAt: loggedAt, foods: prev?.foods ?? [])
+        onChange?(day)
+    }
+    func addFood(date: String, food: FoodEntry) async throws {
+        savedFoods.append(food)
+        let prev = day
+        day = DayLog(userId: "d", date: date, factors: prev?.factors, factorsLoggedAt: prev?.factorsLoggedAt,
+                     migraine: prev?.migraine, symptoms: prev?.symptoms ?? [], symptomsLoggedAt: prev?.symptomsLoggedAt,
+                     foods: (prev?.foods ?? []) + [food])
+        onChange?(day)
+    }
+    func removeFood(date: String, foodIndex: Int) async throws {
+        let prev = day
+        var foods = prev?.foods ?? []
+        if foods.indices.contains(foodIndex) { foods.remove(at: foodIndex) }
+        day = DayLog(userId: "d", date: date, factors: prev?.factors, factorsLoggedAt: prev?.factorsLoggedAt,
+                     migraine: prev?.migraine, symptoms: prev?.symptoms ?? [], symptomsLoggedAt: prev?.symptomsLoggedAt, foods: foods)
+        onChange?(day)
+    }
+    func analyzeFood(description: String) async throws -> AnalyzedFood {
+        if analyzeShouldThrow { throw NSError(domain: "x", code: 1) }
+        return analyzeResult
     }
 }
 
@@ -47,5 +96,29 @@ final class FakeSource: DayDataSource {
         #expect(source.setFactorsCalls.count == 1)
         #expect(store.day?.factors?.sleepHours == 8)   // pushed back through observeDay
         #expect(store.ledger.contains { $0.kind == .factors })
+    }
+
+    @Test func saveMigraineWritesAndReflects() async throws {
+        let store = TodayStore(source: FakeSource(day: nil), today: "2026-06-14")
+        store.start()
+        try await store.saveMigraine(Migraine(had: true, severity: "Mild", time: "10:00", notes: ""))
+        #expect(store.day?.migraine?.had == true)
+        #expect(store.ledger.contains { $0.kind == .migraine })
+    }
+    @Test func saveFoodAppendsToLedger() async throws {
+        let store = TodayStore(source: FakeSource(day: nil), today: "2026-06-14")
+        store.start()
+        try await store.saveFood(FoodEntry(name: "Wine", time: "20:00", triggers: []))
+        #expect(store.ledger.contains { $0.kind == .food })
+    }
+    @Test func analyzeUsesActionThenFallsBack() async throws {
+        let src = FakeSource(day: nil)
+        src.analyzeResult = AnalyzedFood(label: "Cheese", triggers: [TriggerChip(label: "Aged cheese", level: .high)], note: "n")
+        let store = TodayStore(source: src, today: "2026-06-14")
+        let ok = await store.analyze("aged cheddar")
+        #expect(ok.label == "Cheese")               // action path
+        src.analyzeShouldThrow = true
+        let fb = await store.analyze("aged cheddar") // falls back to on-device engine
+        #expect(fb.triggers.contains { $0.label == "Aged cheese" })
     }
 }

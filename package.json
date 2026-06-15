@@ -10,10 +10,11 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "latest",
+    "@types/node": "^25.9.3",
     "convex": "latest",
     "convex-test": "latest",
-    "vitest": "latest",
-    "@edge-runtime/vm": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "vitest": "latest"
   }
 }

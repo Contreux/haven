@@ -6,6 +6,7 @@
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "noEmit": true,
     "types": ["vite/client"]
   },
   "include": ["convex", "vitest.config.ts"]

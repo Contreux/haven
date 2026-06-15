@@ -40,4 +40,24 @@ import Foundation
     @Test func levelDecodesFromString() throws {
         #expect(try JSONDecoder().decode(Level.self, from: Data("\"mid\"".utf8)) == .mid)
     }
+
+    @Test func decodesFoodNoteAndReason() throws {
+        let json = #"""
+        { "userId":"d","date":"2026-06-20","symptoms":[],
+          "foods":[{"name":"Red wine","time":"20:00","note":"with dinner",
+                    "imageId":"kg123",
+                    "triggers":[{"label":"Alcohol","level":"high","reason":"Vasodilator"}]}] }
+        """#
+        let day = try JSONDecoder().decode(DayLog.self, from: Data(json.utf8))
+        #expect(day.foods.first?.note == "with dinner")
+        #expect(day.foods.first?.imageId == "kg123")
+        #expect(day.foods.first?.triggers.first?.reason == "Vasodilator")
+    }
+
+    @Test func decodesM1FoodWithoutNewFields() throws {
+        let json = #"{ "userId":"d","date":"2026-06-11","symptoms":[],"foods":[{"name":"Toast","time":"08:00","triggers":[]}] }"#
+        let day = try JSONDecoder().decode(DayLog.self, from: Data(json.utf8))
+        #expect(day.foods.first?.note == nil)
+        #expect(day.foods.first?.imageId == nil)
+    }
 }
