@@ -19,7 +19,7 @@ struct RootTabView: View {
             case .today: TodayScreen(store: store, onLogger: { activeSheet = $0 })
             case .calendar: CalendarScreen(store: store)
             case .insights: InsightsScreen(store: store)
-            case .weather: WeatherPlaceholder()
+            case .weather: WeatherScreen(weather: store.weather)
             }
         }
         .safeAreaInset(edge: .bottom) { bottomNav }   // insets content so nothing hides behind the bar
