@@ -5,7 +5,6 @@ import HavenCore
 
 struct MenuScanSheet: View {
     @Environment(\.theme) private var theme
-    @Environment(\.dismiss) private var dismiss
     let scanMenu: (Data) async -> MenuScan
     let onLog: (FoodEntry) async -> Void
 
@@ -125,9 +124,9 @@ struct MenuScanSheet: View {
 
     private func color(for verdict: DishVerdict) -> Color {
         switch verdict {
-        case .safe: return .green
-        case .caution: return .orange
-        case .avoid: return .red
+        case .safe: return theme.factorColor(for: .good)
+        case .caution: return theme.factorColor(for: .mid)
+        case .avoid: return theme.factorColor(for: .high)
         }
     }
 
