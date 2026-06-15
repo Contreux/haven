@@ -19,4 +19,5 @@ public protocol DayDataSource: AnyObject {
     func completeOnboarding(answersJSON: String, reminderTime: String?, lat: Double?, lon: Double?) async throws
     func getSettings() async throws -> Settings
     func setSubscribed(_ subscribed: Bool) async throws
+    func validateSubscription(transactionId: String) async throws
 }

@@ -122,6 +122,9 @@ final class ConvexService: DayDataSource {
     func setSubscribed(_ subscribed: Bool) async throws {
         try await client.mutation("settings:setSubscribed", with: ["userId": userId, "subscribed": subscribed])
     }
+    func validateSubscription(transactionId: String) async throws {
+        try await client.action("billing:validateSubscription", with: ["userId": userId, "transactionId": transactionId])
+    }
 
     /// Upload image bytes to Convex storage, returning the storage id (or nil on failure).
     func uploadImage(_ data: Data) async throws -> String? {

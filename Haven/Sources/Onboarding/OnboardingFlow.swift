@@ -7,8 +7,9 @@ struct OnboardingFlow: View {
     let service: ConvexService
     let onFinished: () -> Void
 
-    enum Step: Equatable { case welcome, question(Int), synthesis, permWeather, permReminders, done }
+    enum Step: Equatable { case welcome, question(Int), synthesis, permWeather, permReminders, paywall, done }
     @State private var step: Step = .welcome
+    @State private var storeKit = StoreService()
     @State private var answers: [String: [String]] = [:]
     @State private var reminderTime = "evening"
     @State private var lat: Double?; @State private var lon: Double?
@@ -40,8 +41,12 @@ struct OnboardingFlow: View {
                                   onSkip: { step = .permReminders })
             case .permReminders:
                 PermRemindersScreen(time: $reminderTime,
-                    onEnable: { Task { _ = await Reminders.enable(); Reminders.schedule(hour: 18, minute: 0); await finish() } },
-                    onSkip: { Task { await finish() } })
+                    onEnable: { Task { _ = await Reminders.enable(); Reminders.schedule(hour: 18, minute: 0); step = .paywall } },
+                    onSkip: { step = .paywall })
+            case .paywall:
+                PaywallScreen(store: storeKit,
+                    onSubscribe: { id in Task { await subscribe(id) } },
+                    onClose: { Task { await finish(subscribed: false) } })
             case .done:
                 DoneScreen(onEnter: onFinished)
             }
@@ -52,7 +57,12 @@ struct OnboardingFlow: View {
         Binding(get: { answers[id] ?? [] }, set: { answers[id] = $0 })
     }
 
-    private func finish() async {
+    private func subscribe(_ id: String) async {
+        if let tx = await storeKit.purchase(id) { try? await service.validateSubscription(transactionId: tx) }
+        await finish(subscribed: true)
+    }
+
+    private func finish(subscribed: Bool) async {
         let json = (try? JSONSerialization.data(withJSONObject: answers)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
         try? await service.completeOnboarding(answersJSON: json, reminderTime: reminderTime, lat: lat, lon: lon)
         step = .done
