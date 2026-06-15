@@ -46,5 +46,11 @@ export default defineSchema({
   settings: defineTable({
     userId: v.string(),
     theme: v.string(),
+    onboarded: v.optional(v.boolean()),
+    answers: v.optional(v.string()),       // JSON-encoded answers
+    reminderTime: v.optional(v.string()),
+    lat: v.optional(v.number()),
+    lon: v.optional(v.number()),
+    subscribed: v.optional(v.boolean()),
   }).index("by_user", ["userId"]),
 });

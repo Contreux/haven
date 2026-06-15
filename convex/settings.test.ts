@@ -28,3 +28,25 @@ test("updateSettings updates in place (single row per device)", async () => {
   expect(rows.length).toBe(1);
   expect(rows[0].theme).toBe("dark");
 });
+
+test("completeOnboarding sets onboarded + fields", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.settings.completeOnboarding, {
+    userId: "dev-1", answers: '{"frequency":"weekly"}', reminderTime: "evening", lat: 51.5, lon: -0.1,
+  });
+  const s = await t.query(api.settings.getSettings, { userId: "dev-1" });
+  expect(s.onboarded).toBe(true);
+  expect(s.reminderTime).toBe("evening");
+});
+test("getSettings defaults onboarded/subscribed false", async () => {
+  const t = convexTest(schema, modules);
+  const s = await t.query(api.settings.getSettings, { userId: "new" });
+  expect(s.onboarded).toBe(false);
+  expect(s.subscribed).toBe(false);
+});
+test("setSubscribed flips subscribed", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.settings.setSubscribed, { userId: "dev-1", subscribed: true });
+  const s = await t.query(api.settings.getSettings, { userId: "dev-1" });
+  expect(s.subscribed).toBe(true);
+});
