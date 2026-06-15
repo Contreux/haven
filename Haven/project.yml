@@ -29,6 +29,7 @@ targets:
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.0"
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Haven warns you on high-risk weather days before a migraine."
         # convex-swift's Rust xcframework ships arm64-only for the simulator.
         # Exclude x86_64 so simulator builds link on Apple Silicon.
         "EXCLUDED_ARCHS[sdk=iphonesimulator*]": x86_64
