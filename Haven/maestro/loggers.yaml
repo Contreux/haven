@@ -1,0 +1,32 @@
+# Maestro flow — M2 loggers: speed-dial opens each logger; symptom + food save
+# and appear in the ledger. Food uses the on-device engine (no API key needed).
+#   ~/.maestro/bin/maestro test Haven/maestro/loggers.yaml
+appId: app.haven.Haven
+---
+- launchApp
+- assertVisible: "Today"
+# Log a symptom via the speed-dial.
+- tapOn:
+    id: "speed-dial"
+- tapOn:
+    id: "dial-symptom"
+- assertVisible: "Log symptoms"
+- tapOn: "Nausea"
+- tapOn:
+    id: "symptoms-save"
+- assertVisible: "Today"
+# Log food: describe -> analyze (on-device fallback) -> save.
+- tapOn:
+    id: "speed-dial"
+- tapOn:
+    id: "dial-food"
+- assertVisible: "Log food"
+- tapOn: "Describe what you ate or drank…"
+- inputText: "aged cheddar toastie"
+- tapOn:
+    id: "food-analyze"
+- assertVisible: "Aged cheese"
+- tapOn:
+    id: "food-save"
+- assertVisible: "Logged today"
+- takeScreenshot: m2-loggers

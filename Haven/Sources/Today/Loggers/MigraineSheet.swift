@@ -14,7 +14,8 @@ struct MigraineSheet: View {
 
     init(existing: Migraine?, onSave: @escaping (Migraine) async -> Void, onRemove: @escaping () async -> Void) {
         self.existing = existing; self.onSave = onSave; self.onRemove = onRemove
-        _severity = State(initialValue: existing?.severity.isEmpty == false ? existing!.severity : "Moderate")
+        // Normalize to the segmented control's capitalized options (stored data may be lowercase).
+        _severity = State(initialValue: existing?.severity.isEmpty == false ? existing!.severity.capitalized : "Moderate")
         _notes = State(initialValue: existing?.notes ?? "")
     }
 
