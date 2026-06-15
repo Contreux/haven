@@ -1,6 +1,6 @@
 name: Haven
 options:
-  bundleIdPrefix: app.haven
+  bundleIdPrefix: app.aurora
   deploymentTarget:
     iOS: "17.0"
 packages:
@@ -23,7 +23,7 @@ targets:
         product: ConvexMobile
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.haven.Haven
+        PRODUCT_BUNDLE_IDENTIFIER: app.aurora.haven
         DEVELOPMENT_TEAM: 34STU5HY7K
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: "YES"

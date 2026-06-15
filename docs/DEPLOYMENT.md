@@ -34,7 +34,7 @@ Launch plan: **free app** (no IAP), **TestFlight first**, then App Store review.
    npx convex env set ALLOW_SEED true   # on the DEV deployment only
    ```
 
-3. **App Store Connect app record** — create the app: name "Haven", bundle ID `app.haven.Haven`, primary language, category (Health & Fitness), SKU.
+3. **App Store Connect app record** — create the app: name "Haven", bundle ID `app.aurora.haven` (already registered with default capabilities), primary language, category (Health & Fitness), SKU `haven`. (The App Store Connect API cannot create app records — UI only.)
 
 4. **Privacy** (required — this app handles health data):
    - Host a **privacy policy** and put its URL in ASC.
