@@ -4,6 +4,7 @@ import HavenCore
 
 struct RootTabView: View {
     @Environment(\.theme) private var theme
+    @Environment(ThemeController.self) private var themeController
     @State private var store: TodayStore
     @State private var tab: Tab = .today
     @State private var activeSheet: LoggerKind?
@@ -34,6 +35,7 @@ struct RootTabView: View {
             if let service = store.source as? ConvexService {
                 ProfileScreen(source: service, onDataDeleted: { showProfile = false; onDataDeleted() })
                     .environment(\.theme, theme)
+                    .environment(themeController)
             }
         }
         .overlay(alignment: .bottom) { if dialOpen { fanOverlay } }

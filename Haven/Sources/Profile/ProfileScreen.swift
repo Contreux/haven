@@ -1,12 +1,15 @@
 import SwiftUI
+import StoreKit
 import HavenDesignSystem
 import HavenCore
 
 struct ProfileScreen: View {
     @Environment(\.theme) private var theme
     @Environment(\.dismiss) private var dismiss
+    @Environment(ThemeController.self) private var themeController
     @State private var store: ProfileStore
     @State private var editing: OnboardingQuestion?
+    @State private var reminder = "evening"
     let onDataDeleted: () -> Void
 
     init(source: DayDataSource, onDataDeleted: @escaping () -> Void) {
@@ -21,11 +24,18 @@ struct ProfileScreen: View {
                 VStack(alignment: .leading, spacing: Spacing.s6) {
                     header
                     profileSection
+                    subscriptionSection
+                    remindersSection
+                    weatherSection
+                    aboutSection
                 }
                 .padding(Spacing.s7)
             }
         }
-        .task { await store.load() }
+        .task {
+            await store.load()
+            reminder = store.settings.reminderTime.isEmpty ? "evening" : store.settings.reminderTime
+        }
         .sheet(item: $editing) { q in
             QuestionEditorSheet(question: q, selection: store.answers[q.id] ?? []) { values in
                 Task { await store.saveAnswer(questionId: q.id, values: values) }
@@ -53,6 +63,78 @@ struct ProfileScreen: View {
                 .accessibilityIdentifier("profile-row-\(row.questionId)")
             }
         }
+    }
+
+    private func sectionCard<Content: View>(_ title: String, @ViewBuilder _ content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.s3) {
+            Text(title).havenText(.eyebrow, color: theme.inkFaint)
+            content()
+                .padding(Spacing.s5).frame(maxWidth: .infinity, alignment: .leading)
+                .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+        }
+    }
+
+    private var subscriptionSection: some View {
+        sectionCard("SUBSCRIPTION") {
+            VStack(alignment: .leading, spacing: Spacing.s3) {
+                Text(store.settings.subscribed ? "Haven Premium — active" : "Free plan")
+                    .havenText(.body, color: theme.ink)
+                HStack(spacing: Spacing.s5) {
+                    Button("Manage") { Task { try? await AppStore.showManageSubscriptions(in: scene) } }
+                        .havenText(.meta, color: theme.accent)
+                    Button("Restore") { }
+                        .havenText(.meta, color: theme.accent)
+                        .accessibilityIdentifier("profile-restore")
+                }
+            }
+        }
+    }
+
+    private var remindersSection: some View {
+        sectionCard("REMINDERS") {
+            VStack(alignment: .leading, spacing: Spacing.s3) {
+                Text("Daily reminder").havenText(.body, color: theme.ink)
+                Picker("", selection: $reminder) {
+                    Text("Morning").tag("morning"); Text("Afternoon").tag("afternoon"); Text("Evening").tag("evening")
+                }
+                .pickerStyle(.segmented)
+                .onChange(of: reminder) { _, t in Task { await store.setReminderTime(t) } }
+            }
+        }
+    }
+
+    private var weatherSection: some View {
+        sectionCard("WEATHER & LOCATION") {
+            VStack(alignment: .leading, spacing: Spacing.s1) {
+                Text(store.settings.lat == nil ? "Barometric risk off" : "Barometric risk on")
+                    .havenText(.body, color: theme.ink)
+                if let lat = store.settings.lat, let lon = store.settings.lon {
+                    Text(String(format: "%.2f, %.2f", lat, lon)).havenText(.meta, color: theme.inkSoft)
+                } else {
+                    Text("Location not set").havenText(.meta, color: theme.inkSoft)
+                }
+            }
+        }
+    }
+
+    private var aboutSection: some View {
+        sectionCard("ABOUT") {
+            VStack(alignment: .leading, spacing: Spacing.s4) {
+                HStack {
+                    Text("Dark theme").havenText(.body, color: theme.ink)
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { themeController.mode == .dark },
+                        set: { _ in themeController.toggle() })).labelsHidden()
+                }
+                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")")
+                    .havenText(.meta, color: theme.inkFaint)
+            }
+        }
+    }
+
+    private var scene: UIWindowScene {
+        UIApplication.shared.connectedScenes.first as! UIWindowScene
     }
 
     private var header: some View {
