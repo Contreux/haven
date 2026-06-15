@@ -18,7 +18,10 @@ public final class TodayStore {
         self.weather = WeatherStub.weather(for: today)
     }
 
+    private var started = false
     public func start() {
+        guard !started else { return }   // idempotent — RootTabView may re-invoke
+        started = true
         source.observeDay(date: today) { [weak self] day in
             guard let self else { return }
             self.day = day

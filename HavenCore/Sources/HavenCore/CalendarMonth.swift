@@ -39,7 +39,8 @@ public struct CalendarMonth: Sendable, Equatable {
             let date = cal.date(from: DateComponents(year: year, month: month, day: d))!
             let key = fmt.string(from: date)
             let log = byDate[key]
-            let severity = (log?.migraine?.had ?? false) ? log?.migraine?.severity : nil
+            // Normalize casing so consumers get "Mild"/"Moderate"/"Severe" regardless of how it was stored.
+            let severity = (log?.migraine?.had ?? false) ? log?.migraine?.severity.capitalized : nil
             let mark: DayMark = !(log?.foods.isEmpty ?? true) ? .food
                 : !(log?.symptoms.isEmpty ?? true) ? .symptoms : .none
             cells.append(CalendarCell(id: d, day: d, date: key, migraineSeverity: severity, mark: mark, isToday: key == today))
