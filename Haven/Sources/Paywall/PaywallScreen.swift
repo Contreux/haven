@@ -6,6 +6,7 @@ struct PaywallScreen: View {
     @Environment(\.theme) private var theme
     let store: StoreService
     let onSubscribe: (String) -> Void   // productID
+    let onRestore: () -> Void
     let onClose: () -> Void
 
     @State private var plan = "haven.yearly"
@@ -38,6 +39,12 @@ struct PaywallScreen: View {
                 }.accessibilityIdentifier("pay-subscribe")
                 Text(plan == "haven.yearly" ? "7 days free, then $83.20/year. Cancel anytime." : "$12 per week. Cancel anytime.")
                     .havenText(.meta, color: theme.inkFaint)
+                HStack(spacing: Spacing.s5) {
+                    Button(action: onRestore) { Text("Restore").havenText(.meta, color: theme.inkSoft) }
+                        .accessibilityIdentifier("pay-restore")
+                    Button(action: onClose) { Text("Terms").havenText(.meta, color: theme.inkSoft) }
+                    Button(action: onClose) { Text("Privacy").havenText(.meta, color: theme.inkSoft) }
+                }.frame(maxWidth: .infinity)
             }.padding(Spacing.s7)
         }
         .task { await store.load() }

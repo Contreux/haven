@@ -46,6 +46,7 @@ struct OnboardingFlow: View {
             case .paywall:
                 PaywallScreen(store: storeKit,
                     onSubscribe: { id in Task { await subscribe(id) } },
+                    onRestore: { Task { await restore() } },
                     onClose: { Task { await finish(subscribed: false) } })
             case .done:
                 DoneScreen(onEnter: onFinished)
@@ -59,6 +60,12 @@ struct OnboardingFlow: View {
 
     private func subscribe(_ id: String) async {
         if let tx = await storeKit.purchase(id) { try? await service.validateSubscription(transactionId: tx) }
+        await finish(subscribed: true)
+    }
+
+    /// Restore Purchases (App Store requirement): if a prior subscription is active, record it and proceed.
+    private func restore() async {
+        if await storeKit.hasEntitlement() { try? await service.setSubscribed(true) }
         await finish(subscribed: true)
     }
 
