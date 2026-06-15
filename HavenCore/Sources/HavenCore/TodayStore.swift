@@ -73,4 +73,10 @@ public final class TodayStore {
         do { return try await source.analyzeFood(description: description) }
         catch { return TriggerEngine.analyze(description) }
     }
+
+    /// Two-tier: try the server vision action; on any error fall back to the on-device engine on the hint.
+    public func analyzeImage(imageBase64: String, hint: String) async -> AnalyzedFood {
+        do { return try await source.analyzeFoodImage(imageBase64: imageBase64, hint: hint) }
+        catch { return TriggerEngine.analyze(hint) }
+    }
 }
