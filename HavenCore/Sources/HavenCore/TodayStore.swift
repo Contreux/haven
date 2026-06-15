@@ -79,4 +79,14 @@ public final class TodayStore {
         do { return try await source.analyzeFoodImage(imageBase64: imageBase64, hint: hint) }
         catch { return TriggerEngine.analyze(hint) }
     }
+
+    /// Scans a menu photo via the server vision action. Suspected trigger categories come from
+    /// onboarding answers (weighting). On any error returns an empty scan (no on-device fallback —
+    /// vision is required to read a menu).
+    public func scanMenu(imageBase64: String) async -> MenuScan {
+        let answers = (try? await source.getSettings())?.answers ?? "{}"
+        let suspected = (answersDict(from: answers)["triggers"] ?? []).filter { $0 != "unsure" }
+        do { return try await source.scanMenu(imageBase64: imageBase64, suspected: suspected) }
+        catch { return MenuScan(dishes: []) }
+    }
 }
