@@ -17,6 +17,13 @@ struct TodayScreen: View {
                 VStack(alignment: .leading, spacing: Spacing.s6) {
                     TopBar(dateText: prettyDate(store.today), streak: 1)
                     RiskHero(weather: store.weather)
+                    HStack {
+                        Text("Today's factors").havenText(.sectionHead, color: theme.ink)
+                        Spacer()
+                        Button { editingFactors = true } label: {
+                            Text("Edit").havenText(.meta, color: theme.accent)
+                        }
+                    }
                     FactorRings(factors: store.day?.factors) { editingFactors = true }
                     ActionButtons()
                     if let m = store.day?.migraine, m.had {

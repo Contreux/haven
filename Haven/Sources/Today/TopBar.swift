@@ -13,15 +13,29 @@ struct TopBar: View {
                 Text(dateText).havenText(.meta, color: theme.inkSoft)
             }
             Spacer()
-            if streak > 0 {
-                HStack(spacing: Spacing.s2) {
-                    Image(systemName: "flame.fill").foregroundStyle(theme.accent)
-                    Text("\(streak)").havenText(.meta, color: theme.accent)
+            HStack(spacing: Spacing.s2) {
+                if streak > 0 {
+                    HStack(spacing: Spacing.s2) {
+                        Image(systemName: "drop.fill").foregroundStyle(theme.accent)
+                        Text("\(streak)").havenText(.meta, color: theme.accent)
+                    }
+                    .padding(.horizontal, Spacing.s4)
+                    .padding(.vertical, Spacing.s2)
+                    .background(theme.streakBg, in: Capsule())
                 }
-                .padding(.horizontal, Spacing.s4)
-                .padding(.vertical, Spacing.s2)
-                .background(theme.streakBg, in: Capsule())
+                iconButton("magnifyingglass")
+                iconButton("person")
             }
+        }
+    }
+
+    // Visual chrome — search + profile. Actions land in later milestones (M5 profile).
+    private func iconButton(_ name: String) -> some View {
+        Button { } label: {
+            Image(systemName: name)
+                .foregroundStyle(theme.inkSoft)
+                .frame(width: 38, height: 38)
+                .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
         }
     }
 }

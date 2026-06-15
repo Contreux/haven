@@ -8,9 +8,12 @@ struct RiskHero: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Text("WEATHER RISK").havenText(.eyebrow, color: theme.riskInk)
-            Text(weather.headline).havenText(.riskWord, color: theme.risk)
-            gauge
+            Text("Weather risk today").havenText(.meta, color: theme.riskInk)
+            HStack(alignment: .bottom) {
+                Text(weather.headline).havenText(.riskWord, color: theme.risk)
+                Spacer()
+                gauge
+            }
             Text(weather.detail).havenText(.body, color: theme.riskInk)
         }
         .padding(Spacing.s7)
@@ -18,12 +21,13 @@ struct RiskHero: View {
         .background(theme.riskBg, in: RoundedRectangle(cornerRadius: Radius.xxl))
     }
 
+    // Vertical, signal-strength style bars (ascending), matching the prototype.
     private var gauge: some View {
-        HStack(spacing: Spacing.s2) {
+        HStack(alignment: .bottom, spacing: Spacing.s1) {
             ForEach(0..<4, id: \.self) { i in
                 RoundedRectangle(cornerRadius: Radius.xs)
                     .fill(i < weather.bars ? theme.risk : theme.track)
-                    .frame(height: Spacing.s3)
+                    .frame(width: Spacing.s2, height: Spacing.s3 + CGFloat(i) * Spacing.s2)
             }
         }
     }
