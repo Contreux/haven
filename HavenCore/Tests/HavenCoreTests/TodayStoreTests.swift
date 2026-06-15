@@ -83,6 +83,12 @@ final class FakeSource: DayDataSource {
         if weatherShouldThrow { throw NSError(domain: "x", code: 1) }
         return weatherResult ?? WeatherStub.weather(for: "2026-06-15")
     }
+
+    var settings = Settings(theme: "dark", onboarded: false, subscribed: false)
+    func completeOnboarding(answersJSON: String, reminderTime: String?, lat: Double?, lon: Double?) async throws { settings = Settings(theme: settings.theme, onboarded: true, subscribed: settings.subscribed) }
+    func getSettings() async throws -> Settings { settings }
+    func setSubscribed(_ subscribed: Bool) async throws { settings = Settings(theme: settings.theme, onboarded: settings.onboarded, subscribed: subscribed) }
+    func validateSubscription(transactionId: String) async throws {}
 }
 
 @Suite @MainActor struct TodayStoreTests {

@@ -16,4 +16,8 @@ public protocol DayDataSource: AnyObject {
     func removeFood(date: String, foodIndex: Int) async throws
     func analyzeFood(description: String) async throws -> AnalyzedFood
     func fetchWeather(lat: Double, lon: Double) async throws -> Weather
+    func completeOnboarding(answersJSON: String, reminderTime: String?, lat: Double?, lon: Double?) async throws
+    func getSettings() async throws -> Settings
+    func setSubscribed(_ subscribed: Bool) async throws
+    func validateSubscription(transactionId: String) async throws
 }

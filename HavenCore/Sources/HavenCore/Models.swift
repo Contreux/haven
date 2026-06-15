@@ -63,4 +63,9 @@ public struct DayLog: Codable, Sendable, Equatable {
 
 public struct Settings: Codable, Sendable, Equatable {
     public let theme: String
+    public let onboarded: Bool
+    public let subscribed: Bool
+    public init(theme: String, onboarded: Bool = false, subscribed: Bool = false) {
+        self.theme = theme; self.onboarded = onboarded; self.subscribed = subscribed
+    }
 }

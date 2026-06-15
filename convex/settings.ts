@@ -8,8 +8,33 @@ export const getSettings = query({
       .query("settings")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .unique();
-    return { theme: row?.theme ?? "dark" };
+    return {
+      theme: row?.theme ?? "dark",
+      onboarded: row?.onboarded ?? false,
+      answers: row?.answers ?? "",
+      reminderTime: row?.reminderTime ?? "",
+      lat: row?.lat ?? null,
+      lon: row?.lon ?? null,
+      subscribed: row?.subscribed ?? false,
+    };
   },
+});
+
+async function upsertSettings(ctx: any, userId: string, patch: Record<string, unknown>) {
+  const existing = await ctx.db.query("settings").withIndex("by_user", (q: any) => q.eq("userId", userId)).unique();
+  if (existing) { await ctx.db.patch(existing._id, patch); return existing._id; }
+  return await ctx.db.insert("settings", { userId, theme: "dark", ...patch });
+}
+
+export const completeOnboarding = mutation({
+  args: { userId: v.string(), answers: v.string(), reminderTime: v.optional(v.string()), lat: v.optional(v.number()), lon: v.optional(v.number()) },
+  handler: async (ctx, { userId, answers, reminderTime, lat, lon }) =>
+    await upsertSettings(ctx, userId, { onboarded: true, answers, reminderTime, lat, lon }),
+});
+
+export const setSubscribed = mutation({
+  args: { userId: v.string(), subscribed: v.boolean() },
+  handler: async (ctx, { userId, subscribed }) => await upsertSettings(ctx, userId, { subscribed }),
 });
 
 export const updateSettings = mutation({
