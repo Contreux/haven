@@ -92,3 +92,34 @@ export const setSymptoms = mutation({
     return await ctx.db.insert("days", { userId, date, symptoms, symptomsLoggedAt: loggedAt, foods: [] });
   },
 });
+
+const foodArg = v.object({
+  name: v.string(),
+  time: v.string(),
+  triggers: v.array(v.object({ label: v.string(), level: v.union(v.literal("low"), v.literal("mid"), v.literal("high")), reason: v.optional(v.string()) })),
+  note: v.optional(v.string()),
+  imageId: v.optional(v.id("_storage")),
+});
+
+export const addFood = mutation({
+  args: { userId: v.string(), date: v.string(), food: foodArg },
+  handler: async (ctx, { userId, date, food }) => {
+    const existing = await findDay(ctx, userId, date);
+    if (existing) {
+      await ctx.db.patch(existing._id, { foods: [...existing.foods, food] });
+      return existing._id;
+    }
+    return await ctx.db.insert("days", { userId, date, symptoms: [], foods: [food] });
+  },
+});
+
+export const removeFood = mutation({
+  args: { userId: v.string(), date: v.string(), foodIndex: v.number() },
+  handler: async (ctx, { userId, date, foodIndex }) => {
+    const existing = await findDay(ctx, userId, date);
+    if (!existing) return null;
+    const foods = existing.foods.filter((_, i) => i !== foodIndex);
+    await ctx.db.patch(existing._id, { foods });
+    return existing._id;
+  },
+});

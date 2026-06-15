@@ -88,3 +88,28 @@ test("setSymptoms upserts symptoms + timestamp", async () => {
   expect(day?.symptoms).toEqual(["light", "nausea"]);
   expect(day?.symptomsLoggedAt).toBe("14:40");
 });
+
+test("addFood appends a food entry", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.days.addFood, {
+    userId: "dev-1", date: "2026-06-14",
+    food: { name: "Red wine", time: "20:00", note: "", triggers: [{ label: "Alcohol", level: "high", reason: "Vasodilator" }] },
+  });
+  await t.mutation(api.days.addFood, {
+    userId: "dev-1", date: "2026-06-14",
+    food: { name: "Toast", time: "08:00", note: "", triggers: [] },
+  });
+  const day = await t.query(api.days.getDay, { userId: "dev-1", date: "2026-06-14" });
+  expect(day?.foods.length).toBe(2);
+  expect(day?.foods[0].name).toBe("Red wine");
+});
+
+test("removeFood removes by index", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.days.addFood, { userId: "dev-1", date: "2026-06-14", food: { name: "A", time: "08:00", note: "", triggers: [] } });
+  await t.mutation(api.days.addFood, { userId: "dev-1", date: "2026-06-14", food: { name: "B", time: "09:00", note: "", triggers: [] } });
+  await t.mutation(api.days.removeFood, { userId: "dev-1", date: "2026-06-14", foodIndex: 0 });
+  const day = await t.query(api.days.getDay, { userId: "dev-1", date: "2026-06-14" });
+  expect(day?.foods.length).toBe(1);
+  expect(day?.foods[0].name).toBe("B");
+});
