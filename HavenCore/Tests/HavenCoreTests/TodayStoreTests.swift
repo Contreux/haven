@@ -14,6 +14,12 @@ final class FakeSource: DayDataSource {
         self.onChange = onChange
         onChange(day)
     }
+    var allDays: [DayLog] = []
+    private var daysOnChange: (([DayLog]) -> Void)?
+    func observeDays(onChange: @escaping ([DayLog]) -> Void) {
+        daysOnChange = onChange
+        onChange(allDays)
+    }
     func setFactors(date: String, factors: Factors, loggedAt: String) async throws {
         setFactorsCalls.append((date, factors, loggedAt))
         let prev = day
@@ -120,5 +126,24 @@ final class FakeSource: DayDataSource {
         src.analyzeShouldThrow = true
         let fb = await store.analyze("aged cheddar") // falls back to on-device engine
         #expect(fb.triggers.contains { $0.label == "Aged cheese" })
+    }
+
+    @Test func loadsAllDaysAndComputesStreakAndInsights() {
+        let src = FakeSource(day: nil)
+        src.allDays = [
+            DayLog(userId: "d", date: "2026-06-15", factors: nil, factorsLoggedAt: nil,
+                   migraine: Migraine(had: true, severity: "Moderate", time: "12:00", notes: ""),
+                   symptoms: [], symptomsLoggedAt: nil,
+                   foods: [FoodEntry(name: "Wine", time: "20:00", triggers: [TriggerChip(label: "Alcohol", level: .high)])]),
+            DayLog(userId: "d", date: "2026-06-14", factors: nil, factorsLoggedAt: nil, migraine: nil,
+                   symptoms: [], symptomsLoggedAt: nil, foods: [FoodEntry(name: "Toast", time: "08:00", triggers: [])]),
+        ]
+        let store = TodayStore(source: src, today: "2026-06-15")
+        store.start()
+        #expect(store.allDays.count == 2)
+        #expect(store.streak == 2)                      // 06-15 and 06-14 consecutive
+        #expect(store.insights.migraineDays == 1)
+        let cal = store.calendar(year: 2026, month: 6)
+        #expect(cal.cells.contains { $0.day == 15 && $0.isToday })
     }
 }

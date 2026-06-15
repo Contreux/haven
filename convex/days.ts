@@ -11,6 +11,15 @@ export const getDay = query({
   },
 });
 
+export const getDays = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) =>
+    await ctx.db
+      .query("days")
+      .withIndex("by_user_date", (q) => q.eq("userId", userId))
+      .collect(),
+});
+
 const factorsArg = v.object({
   sleepHours: v.number(),
   stress: v.union(v.literal("low"), v.literal("mid"), v.literal("high")),

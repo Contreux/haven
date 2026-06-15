@@ -1,0 +1,21 @@
+# Maestro flow — M3 navigation: tab bar switches Today/Calendar/Insights; calendar
+# and insights render seeded history. The bottom nav is icon-only; tapped by point
+# (fixed bottom bar): today ~13% · calendar ~33% · insights ~67% · weather ~87%, y 95%.
+#   ~/.maestro/bin/maestro test Haven/maestro/navigation.yaml
+appId: app.haven.Haven
+---
+- launchApp
+- assertVisible: "Today"
+- tapOn:
+    point: "33%,95%"
+- assertVisible: "Calendar"
+- assertVisible: "June 2026"
+- takeScreenshot: m3-calendar
+- tapOn:
+    point: "67%,95%"
+- assertVisible: "Insights"
+- assertVisible: "Your triggers"
+- takeScreenshot: m3-insights
+- tapOn:
+    point: "13%,95%"
+- assertVisible: "Today's factors"

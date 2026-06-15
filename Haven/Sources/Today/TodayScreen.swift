@@ -5,27 +5,29 @@ import HavenCore
 struct TodayScreen: View {
     @Environment(\.theme) private var theme
     @State private var store: TodayStore
-    @State private var activeSheet: LoggerKind?
-    @State private var dialOpen = false
+    private let onLogger: (LoggerKind) -> Void
 
-    init(store: TodayStore) { _store = State(initialValue: store) }
+    init(store: TodayStore, onLogger: @escaping (LoggerKind) -> Void) {
+        _store = State(initialValue: store)
+        self.onLogger = onLogger
+    }
 
     var body: some View {
         ZStack {
             theme.bg.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.s6) {
-                    TopBar(dateText: prettyDate(store.today), streak: 1)
+                    TopBar(dateText: prettyDate(store.today), streak: store.streak)
                     RiskHero(weather: store.weather)
                     HStack {
                         Text("Today's factors").havenText(.sectionHead, color: theme.ink)
                         Spacer()
-                        Button { activeSheet = .factors } label: {
+                        Button { onLogger(.factors) } label: {
                             Text("Edit").havenText(.meta, color: theme.accent)
                         }
                     }
-                    FactorRings(factors: store.day?.factors) { activeSheet = .factors }
-                    ActionButtons(onLogMigraine: { activeSheet = .migraine }, onSnapMeal: { activeSheet = .food })
+                    FactorRings(factors: store.day?.factors) { onLogger(.factors) }
+                    ActionButtons(onLogMigraine: { onLogger(.migraine) }, onSnapMeal: { onLogger(.food) })
                     if let m = store.day?.migraine, m.had {
                         MigraineAlertCard(migraine: m)
                     }
@@ -36,41 +38,7 @@ struct TodayScreen: View {
                 }
                 .padding(Spacing.s6)
             }
-            .overlay(alignment: .bottomTrailing) {
-                SpeedDial(isOpen: $dialOpen) { kind in activeSheet = kind }
-                    .padding(Spacing.s6)
-            }
         }
-        .task { store.start() }
-        .sheet(item: $activeSheet) { kind in
-            sheet(for: kind).environment(\.theme, theme)
-        }
-    }
-
-    @ViewBuilder private func sheet(for kind: LoggerKind) -> some View {
-        switch kind {
-        case .migraine:
-            MigraineSheet(existing: store.day?.migraine,
-                          onSave: { try? await store.saveMigraine($0) },
-                          onRemove: { try? await store.removeMigraine() })
-        case .symptom:
-            SymptomSheet(existing: store.day?.symptoms ?? []) { try? await store.saveSymptoms($0) }
-        case .factors:
-            FactorsSheet(initial: store.day?.factors) { try? await store.saveFactors($0) }
-        case .food:
-            FoodCaptureSheet(analyze: { await store.analyze($0) }) { food, imageData in
-                await saveFood(food, imageData)
-            }
-        }
-    }
-
-    private func saveFood(_ food: FoodEntry, _ imageData: Data?) async {
-        var entry = food
-        if let imageData, let service = store.source as? ConvexService,
-           let id = try? await service.uploadImage(imageData) {
-            entry = FoodEntry(name: food.name, time: food.time, triggers: food.triggers, note: food.note, imageId: id)
-        }
-        try? await store.saveFood(entry)
     }
 
     private func prettyDate(_ ymd: String) -> String {

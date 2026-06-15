@@ -6,6 +6,7 @@ import Observation
 public final class TodayStore {
     public private(set) var day: DayLog?
     public private(set) var ledger: [LedgerEntry] = []
+    public private(set) var allDays: [DayLog] = []
     public let weather: Weather
     public let today: String
 
@@ -17,12 +18,24 @@ public final class TodayStore {
         self.weather = WeatherStub.weather(for: today)
     }
 
+    private var started = false
     public func start() {
+        guard !started else { return }   // idempotent — RootTabView may re-invoke
+        started = true
         source.observeDay(date: today) { [weak self] day in
             guard let self else { return }
             self.day = day
             self.ledger = day.map(buildLedger(from:)) ?? []
         }
+        source.observeDays { [weak self] days in
+            self?.allDays = days
+        }
+    }
+
+    public var streak: Int { HavenCore.streak(loggedDates: allDays.map(\.date), asOf: today) }
+    public var insights: InsightsResult { Insights.compute(allDays) }
+    public func calendar(year: Int, month: Int) -> CalendarMonth {
+        CalendarMonth.build(days: allDays, year: year, month: month, today: today)
     }
 
     /// "HH:mm" for now — the ledger timestamp for a fresh edit.
