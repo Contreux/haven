@@ -115,6 +115,14 @@ function genDay(userId: string, date: string, forceMigraine: boolean) {
 export const seed = mutation({
   args: { userId: v.string(), today: v.string() },
   handler: async (ctx, { userId, today }) => {
+    // Production guard: this fixture DELETES a date range before inserting, so it must
+    // never run against real user data. It is allowed only when explicitly enabled
+    // (`npx convex env set ALLOW_SEED true` on dev) or under the test runner. Prod
+    // deployments leave ALLOW_SEED unset, so this throws.
+    if (process.env.ALLOW_SEED !== "true" && process.env.NODE_ENV !== "test") {
+      throw new Error("seed is disabled: set ALLOW_SEED=true on non-production deployments to use it");
+    }
+
     const dates = Array.from({ length: DAYS }, (_, i) => minusDays(today, i));
 
     // Idempotent: clear existing rows for the range first.

@@ -5,8 +5,14 @@ import HavenCore
 
 @MainActor
 final class ConvexService: DayDataSource {
-    // Verified dev deployment URL (P2). Public endpoint, not a secret.
+    // Public Convex endpoint (not a secret). DEBUG builds use the dev deployment
+    // (seeded demo data, paired with DeviceIdentity "sim-device"); Release builds
+    // use prod. Keep in sync with the deployment you `npx convex deploy` to.
+    #if DEBUG
     nonisolated static let deploymentURL = "https://cool-anteater-665.convex.cloud"
+    #else
+    nonisolated static let deploymentURL = "https://focused-turtle-754.convex.cloud"
+    #endif
 
     private nonisolated(unsafe) let client: ConvexClient
     private let userId = DeviceIdentity.current
