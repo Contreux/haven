@@ -2,6 +2,7 @@
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { parseAnalysis } from "./foodParse";
+import { parseMenuAnalysis } from "./menuParse";
 
 const TRIGGERS_GUIDE =
   "Common migraine triggers: aged cheese (tyramine), cured/processed meats (nitrates), chocolate, caffeine, alcohol (esp. red wine), MSG, aspartame, citrus, fermented foods, nuts, soy sauce, tomatoes.";
@@ -11,13 +12,13 @@ const JSON_SHAPE =
   `{"label":"short meal name","items":["each distinct food or drink"],"triggers":[{"name":"Aged cheese","level":"high","reason":"short reason under 8 words"}],"note":"one short calm sentence"}\n` +
   `Rank triggers high→low. level is "high","medium" or "low". If none, use [].`;
 
-async function callClaude(content: any): Promise<string> {
+async function callClaude(content: any, maxTokens = 512): Promise<string> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY not configured");
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 512, messages: [{ role: "user", content }] }),
+    body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: maxTokens, messages: [{ role: "user", content }] }),
   });
   if (!res.ok) throw new Error(`Anthropic error ${res.status}`);
   const data = await res.json();
@@ -45,5 +46,27 @@ export const analyzeFoodImage = action({
       { type: "text", text },
     ];
     return parseAnalysis(await callClaude(content), hint && hint.length > 0 ? hint : "Meal photo");
+  },
+});
+
+export const scanMenu = action({
+  args: { imageBase64: v.string(), suspected: v.optional(v.array(v.string())) },
+  handler: async (_ctx, { imageBase64, suspected }) => {
+    const focus =
+      suspected && suspected.length > 0
+        ? `The user especially suspects these trigger categories: ${suspected.join(", ")}. Weight those higher when in doubt.\n`
+        : ``;
+    const text =
+      `This is a photo of a restaurant menu. List each distinct dish you can read. ` +
+      `For each dish, classify it for a migraine sufferer as safe, caution, or avoid using these triggers: ${TRIGGERS_GUIDE}\n` +
+      focus +
+      `Reply with ONLY minified JSON, no markdown, exactly this shape:\n` +
+      `{"dishes":[{"name":"dish name","verdict":"safe|caution|avoid","triggers":["aged cheese"],"reason":"short reason under 8 words"}]}\n` +
+      `If a dish has no likely trigger use verdict "safe" and triggers [].`;
+    const content = [
+      { type: "image", source: { type: "base64", media_type: "image/jpeg", data: imageBase64 } },
+      { type: "text", text },
+    ];
+    return parseMenuAnalysis(await callClaude(content, 1500), "Dish");
   },
 });
