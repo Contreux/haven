@@ -105,6 +105,24 @@ final class ConvexService: DayDataSource {
         return result
     }
 
+    func completeOnboarding(answersJSON: String, reminderTime: String?, lat: Double?, lon: Double?) async throws {
+        var args: [String: ConvexEncodable?] = ["userId": userId, "answers": answersJSON]
+        if let reminderTime { args["reminderTime"] = reminderTime }
+        if let lat { args["lat"] = lat }
+        if let lon { args["lon"] = lon }
+        try await client.mutation("settings:completeOnboarding", with: args)
+    }
+    func getSettings() async throws -> Settings {
+        // convex-swift 0.8.1 has NO one-shot query — take the first value off a subscription.
+        let publisher: AnyPublisher<Settings, ClientError> =
+            client.subscribe(to: "settings:getSettings", with: ["userId": userId], yielding: Settings.self)
+        for try await value in publisher.values { return value }
+        throw ClientError.InternalError(msg: "getSettings subscription emitted no value")  // unreachable; subscription always emits the query result
+    }
+    func setSubscribed(_ subscribed: Bool) async throws {
+        try await client.mutation("settings:setSubscribed", with: ["userId": userId, "subscribed": subscribed])
+    }
+
     /// Upload image bytes to Convex storage, returning the storage id (or nil on failure).
     func uploadImage(_ data: Data) async throws -> String? {
         let uploadURL: String = try await client.mutation("files:generateUploadUrl", with: [:])
