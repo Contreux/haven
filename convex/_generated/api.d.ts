@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as ai from "../ai.js";
 import type * as days from "../days.js";
+import type * as files from "../files.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 
@@ -19,7 +21,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  ai: typeof ai;
   days: typeof days;
+  files: typeof files;
   seed: typeof seed;
   settings: typeof settings;
 }>;
