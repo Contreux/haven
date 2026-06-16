@@ -16,6 +16,7 @@ struct FoodCaptureSheet: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var busy = false
+    @State private var saving = false
     @State private var result: AnalyzedFood?
 
     private var canAnalyze: Bool { mode == .describe ? desc.trimmingCharacters(in: .whitespaces).count > 1 : (imageData != nil || desc.count > 1) }
@@ -25,8 +26,10 @@ struct FoodCaptureSheet: View {
             SheetHeader(title: "Log food", subtitle: "Photo or describe what you ate")
             if let result {
                 resultView(result)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
             } else {
                 captureView
+                    .transition(.opacity)
             }
         }
         .padding(Spacing.s6)
@@ -66,13 +69,17 @@ struct FoodCaptureSheet: View {
             Button {
                 busy = true
                 Task {
+                    let t0 = Date()
+                    let r: AnalyzedFood
                     if mode == .photo, let data = imageData {
-                        result = await analyzeImage(data, desc)
+                        r = await analyzeImage(data, desc)
                     } else {
                         let text = desc.isEmpty ? "the meal in the photo" : desc
-                        result = await analyze(text)
+                        r = await analyze(text)
                     }
+                    await Self.thinkingBeat(since: t0)
                     busy = false
+                    withAnimation(.easeOut(duration: 0.3)) { result = r }
                 }
             } label: {
                 HStack { if busy { ProgressView() }; Text(busy ? "Analyzing" : "Analyze").havenText(.sectionHead, color: theme.ctaInk) }
@@ -117,20 +124,34 @@ struct FoodCaptureSheet: View {
                 }
             }
             Button {
+                saving = true
                 Task {
                     let food = FoodEntry(name: r.label, time: TodayStore.nowHM(), triggers: r.triggers,
                                          note: desc.isEmpty ? nil : desc, imageId: nil)
-                    await onSave(food, imageData); dismiss()
+                    await onSave(food, imageData)
+                    saving = false
+                    dismiss()
                 }
             } label: {
-                Text("Save to today").havenText(.sectionHead, color: theme.ctaInk)
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                    .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                HStack(spacing: Spacing.s2) {
+                    if saving { ProgressView().tint(theme.ctaInk) }
+                    Text(saving ? "Saving" : "Save to today").havenText(.sectionHead, color: theme.ctaInk)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
+                .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
             }
+            .disabled(saving)
             .accessibilityIdentifier("food-save")
-            Button { result = nil } label: {
+            Button { withAnimation(.easeOut(duration: 0.3)) { result = nil } } label: {
                 Text("Redo").havenText(.meta, color: theme.inkSoft).frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
             }
+            .disabled(saving)
         }
+    }
+
+    /// Hold the spinner for a minimum beat so a fast response still reads as "thinking", per the handoff.
+    static func thinkingBeat(since start: Date, minimum: TimeInterval = 0.9) async {
+        let remaining = minimum - Date().timeIntervalSince(start)
+        if remaining > 0 { try? await Task.sleep(for: .seconds(remaining)) }
     }
 }

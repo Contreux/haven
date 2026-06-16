@@ -12,6 +12,7 @@ struct FactorsSheet: View {
     @State private var stress: String
     @State private var hydration: String
     @State private var weatherSensitive: Bool
+    @State private var saving = false
 
     init(initial: Factors?, onSave: @escaping (Factors) async -> Void) {
         self.initial = initial; self.onSave = onSave
@@ -38,16 +39,22 @@ struct FactorsSheet: View {
                 Text("I felt weather-sensitive today").havenText(.body, color: theme.inkSoft)
             }.tint(theme.accent)
             Button {
+                saving = true
                 Task {
                     await onSave(Factors(sleepHours: sleep, stress: level(stress),
                                          hydration: level(hydration), weatherSensitive: weatherSensitive))
+                    saving = false
                     dismiss()
                 }
             } label: {
-                Text("Save").havenText(.sectionHead, color: theme.ctaInk)
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                    .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                HStack(spacing: Spacing.s2) {
+                    if saving { ProgressView().tint(theme.ctaInk) }
+                    Text(saving ? "Saving" : "Save").havenText(.sectionHead, color: theme.ctaInk)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
+                .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
             }
+            .disabled(saving)
             .accessibilityIdentifier("factors-save")
         }
         .padding(Spacing.s6)

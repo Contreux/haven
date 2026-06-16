@@ -11,6 +11,7 @@ struct MigraineSheet: View {
 
     @State private var severity: String
     @State private var notes: String
+    @State private var saving = false
 
     init(existing: Migraine?, onSave: @escaping (Migraine) async -> Void, onRemove: @escaping () async -> Void) {
         self.existing = existing; self.onSave = onSave; self.onRemove = onRemove
@@ -30,18 +31,24 @@ struct MigraineSheet: View {
                 .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
                 .havenText(.body, color: theme.ink)
             Button {
-                Task { await onSave(Migraine(had: true, severity: severity, time: TodayStore.nowHM(), notes: notes)); dismiss() }
+                saving = true
+                Task { await onSave(Migraine(had: true, severity: severity, time: TodayStore.nowHM(), notes: notes)); saving = false; dismiss() }
             } label: {
-                Text("Save").havenText(.sectionHead, color: theme.ctaInk)
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                    .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                HStack(spacing: Spacing.s2) {
+                    if saving { ProgressView().tint(theme.ctaInk) }
+                    Text(saving ? "Saving" : "Save").havenText(.sectionHead, color: theme.ctaInk)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
+                .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
             }
+            .disabled(saving)
             .accessibilityIdentifier("migraine-save")
             if existing?.had == true {
                 Button { Task { await onRemove(); dismiss() } } label: {
                     Text("Remove migraine").havenText(.meta, color: theme.factorHigh)
                         .frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
                 }
+                .disabled(saving)
             }
         }
         .padding(Spacing.s6)

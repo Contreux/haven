@@ -32,13 +32,10 @@ struct LedgerRow: View {
                 Text(entry.title).havenText(.body, color: theme.ink)
                 Text(entry.subtitle).havenText(.meta, color: theme.inkSoft)
                 if !entry.triggers.isEmpty {
-                    HStack(spacing: Spacing.s2) {
-                        ForEach(entry.triggers) { t in
-                            Text(t.label).havenText(.eyebrow, color: theme.ink)
-                                .padding(.horizontal, Spacing.s3).padding(.vertical, Spacing.s1)
-                                .background(theme.factorColor(for: factorLevel(t.level)).opacity(0.2), in: Capsule())
-                        }
+                    FlowLayout(spacing: Spacing.s2) {
+                        ForEach(entry.triggers) { TriggerPill(trigger: $0) }
                     }
+                    .padding(.top, Spacing.s1)
                 }
             }
             Spacer()
@@ -63,6 +60,27 @@ struct LedgerRow: View {
         case .factors: theme.accent
         default: theme.inkSoft
         }
+    }
+}
+
+/// A single trigger pill on a logged entry: colored dot + name + level, matching the design's `.trig`.
+/// The name stays on one line (no internal wrapping); chips wrap as a group via `FlowLayout`.
+struct TriggerPill: View {
+    @Environment(\.theme) private var theme
+    let trigger: TriggerChip
+
+    var body: some View {
+        HStack(spacing: Spacing.s2) {
+            Circle().fill(theme.factorColor(for: factorLevel(trigger.level)))
+                .frame(width: 7, height: 7)
+            Text(trigger.label).havenText(.chipName, color: theme.ink).lineLimit(1)
+            Text(trigger.level.rawValue).havenText(.eyebrow, color: theme.inkSoft)
+        }
+        .fixedSize()
+        .padding(.horizontal, Spacing.s3).padding(.vertical, Spacing.s2)
+        // chip == surface in the dark theme, so a flush pill is invisible on the card;
+        // recess it with the darker page background so it reads as a discrete badge.
+        .background(theme.bg, in: Capsule())
     }
     private func factorLevel(_ l: Level) -> FactorLevel {
         switch l { case .low: .low; case .mid: .medium; case .high: .high }

@@ -12,7 +12,8 @@ struct MenuScanSheet: View {
     @State private var imageData: Data?
     @State private var busy = false
     @State private var result: MenuScan?
-    @State private var loggedDishes: Set<String> = []   // dish.id of dishes already logged
+    @State private var loggedDishes: Set<String> = []   // section keys of dishes already logged
+    @State private var loggingKey: String?              // section key currently being logged
 
     var body: some View {
         ZStack {
@@ -22,8 +23,10 @@ struct MenuScanSheet: View {
                     SheetHeader(title: "Scan menu", subtitle: "Photo a menu — see what's safe")
                     if let result {
                         resultView(result)
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                     } else {
                         captureView
+                            .transition(.opacity)
                     }
                 }
                 .padding(Spacing.s6)
@@ -50,7 +53,13 @@ struct MenuScanSheet: View {
             Button {
                 guard let data = imageData else { return }
                 busy = true
-                Task { result = await scanMenu(data); busy = false }
+                Task {
+                    let t0 = Date()
+                    let scan = await scanMenu(data)
+                    await FoodCaptureSheet.thinkingBeat(since: t0)
+                    busy = false
+                    withAnimation(.easeOut(duration: 0.3)) { result = scan }
+                }
             } label: {
                 HStack { if busy { ProgressView() }; Text(busy ? "Scanning" : "Scan menu").havenText(.sectionHead, color: theme.ctaInk) }
                     .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
@@ -95,25 +104,31 @@ struct MenuScanSheet: View {
             ForEach(Array(dishes.enumerated()), id: \.offset) { index, dish in
                 let key = "\(code)-\(index)"
                 Button {
+                    guard loggingKey == nil, !loggedDishes.contains(key) else { return }
+                    loggingKey = key
                     Task {
                         await onLog(FoodEntry(name: dish.name, time: TodayStore.nowHM(),
                                               triggers: dish.asTriggerChips(), note: "From menu scan", imageId: nil))
+                        loggingKey = nil
                         loggedDishes.insert(key)
                     }
-                } label: { dishRow(dish, logged: loggedDishes.contains(key)) }
+                } label: { dishRow(dish, logged: loggedDishes.contains(key), logging: loggingKey == key) }
+                .disabled(loggingKey != nil)
                 .accessibilityIdentifier("menu-\(code)-dish-\(index)")
             }
         }
     }
 
-    private func dishRow(_ dish: MenuDish, logged: Bool) -> some View {
+    private func dishRow(_ dish: MenuDish, logged: Bool, logging: Bool) -> some View {
         HStack(alignment: .top, spacing: Spacing.s3) {
             Circle().fill(color(for: dish.verdict)).frame(width: 10, height: 10).padding(.top, Spacing.s2)
             VStack(alignment: .leading, spacing: Spacing.s1) {
                 HStack {
                     Text(dish.name).havenText(.body, color: theme.ink)
                     Spacer()
-                    if logged {
+                    if logging {
+                        ProgressView().controlSize(.small).tint(theme.inkSoft)
+                    } else if logged {
                         Label("Logged", systemImage: "checkmark").havenText(.meta, color: theme.inkSoft)
                     }
                 }

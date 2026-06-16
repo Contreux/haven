@@ -28,6 +28,8 @@ public struct TextStyle: Sendable {
     public static let meta        = TextStyle(family: .sans, size: TypeScale.sm, weight: .medium, leading: Leading.snug, trackingEm: 0)
     public static let columnLabel = TextStyle(family: .sans, size: TypeScale.lg, weight: .semibold, leading: Leading.snug, trackingEm: Tracking.snug)
     public static let eyebrow     = TextStyle(family: .sans, size: TypeScale.xs, weight: .semibold, leading: Leading.snug, trackingEm: Tracking.wide, uppercased: true)
+    /// Trigger-chip name: base size, semibold, sentence case — matches the design's `.trig .nm`.
+    public static let chipName    = TextStyle(family: .sans, size: TypeScale.base, weight: .semibold, leading: Leading.snug, trackingEm: 0)
 }
 
 public extension View {

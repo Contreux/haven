@@ -20,6 +20,7 @@ struct SymptomSheet: View {
     ]
 
     @State private var selected: Set<String>
+    @State private var saving = false
     init(existing: [String], onSave: @escaping ([String]) async -> Void) {
         self.existing = existing; self.onSave = onSave
         _selected = State(initialValue: Set(existing))
@@ -48,12 +49,17 @@ struct SymptomSheet: View {
                 }
             }
             Button {
-                Task { await onSave(Array(selected)); dismiss() }
+                saving = true
+                Task { await onSave(Array(selected)); saving = false; dismiss() }
             } label: {
-                Text("Save").havenText(.sectionHead, color: theme.ctaInk)
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                    .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                HStack(spacing: Spacing.s2) {
+                    if saving { ProgressView().tint(theme.ctaInk) }
+                    Text(saving ? "Saving" : "Save").havenText(.sectionHead, color: theme.ctaInk)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
+                .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
             }
+            .disabled(saving)
             .accessibilityIdentifier("symptoms-save")
         }
         .padding(Spacing.s6)
