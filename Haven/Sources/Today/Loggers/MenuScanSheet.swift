@@ -8,6 +8,7 @@ struct MenuScanSheet: View {
     let scanMenu: (Data) async -> MenuScan
     let onLog: (FoodEntry) async -> Void
 
+    @StateObject private var camera = MenuCameraModel()
     @State private var photoItem: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var busy = false
@@ -36,20 +37,74 @@ struct MenuScanSheet: View {
 
     private var captureView: some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
+            if let data = imageData, let img = UIImage(data: data) {
+                capturedView(img)
+            } else {
+                cameraView
+            }
+            Text("Assessments are informational and may be wrong.").havenText(.meta, color: theme.inkFaint)
+        }
+        .onAppear { camera.startIfPermitted() }
+        .onDisappear { camera.stop() }
+    }
+
+    // Live camera viewfinder with a shutter, plus an album fallback.
+    private var cameraView: some View {
+        VStack(spacing: Spacing.s4) {
+            ZStack {
+                if camera.access == .granted && camera.ready {
+                    CameraPreview(session: camera.session)
+                } else {
+                    RoundedRectangle(cornerRadius: Radius.lg).fill(theme.surface)
+                        .overlay(
+                            VStack(spacing: Spacing.s2) {
+                                Image(systemName: camera.access == .denied ? "video.slash" : "camera.viewfinder")
+                                    .font(.system(size: 28)).foregroundStyle(theme.inkFaint)
+                                Text(camera.access == .denied ? "Camera access is off — enable it in Settings, or choose from your album."
+                                                              : "Point your camera at the menu")
+                                    .havenText(.meta, color: theme.inkFaint)
+                                    .multilineTextAlignment(.center).padding(.horizontal, Spacing.s6)
+                            })
+                }
+            }
+            .frame(height: 380)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
+            // Shutter
+            Button {
+                camera.capture { data in
+                    guard let data else { return }
+                    imageData = ImageScaler.downscaledJPEG(data)
+                    camera.stop()
+                }
+            } label: {
+                ZStack {
+                    Circle().fill(theme.ctaBg).frame(width: 64, height: 64)
+                    Circle().stroke(theme.bg, lineWidth: 3).frame(width: 54, height: 54)
+                }
+            }
+            .disabled(!(camera.access == .granted && camera.ready))
+            .opacity(camera.access == .granted && camera.ready ? 1 : 0.4)
+            .accessibilityIdentifier("menu-shutter")
             PhotosPicker(selection: $photoItem, matching: .images) {
-                HStack { Image(systemName: "doc.text.viewfinder"); Text("Add a menu photo").havenText(.meta, color: theme.ink) }
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s7)
-                    .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+                HStack(spacing: Spacing.s2) { Image(systemName: "photo.on.rectangle"); Text("Choose from album").havenText(.meta, color: theme.ink) }
                     .foregroundStyle(theme.inkSoft)
             }
             .onChange(of: photoItem) { _, item in
                 Task {
                     if let raw = try? await item?.loadTransferable(type: Data.self) {
-                        imageData = ImageScaler.downscaledJPEG(raw)
+                        imageData = ImageScaler.downscaledJPEG(raw); camera.stop()
                     }
                 }
             }
-            if imageData != nil { Text("Photo attached").havenText(.meta, color: theme.inkSoft) }
+        }
+    }
+
+    // After a shot is taken or picked: preview + scan / retake.
+    private func capturedView(_ img: UIImage) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.s4) {
+            Image(uiImage: img).resizable().scaledToFill()
+                .frame(height: 320).frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
             Button {
                 guard let data = imageData else { return }
                 busy = true
@@ -67,9 +122,12 @@ struct MenuScanSheet: View {
                 }
                 .primaryCTA()
             }
-            .disabled(busy || imageData == nil)
+            .disabled(busy)
             .accessibilityIdentifier("menu-scan")
-            Text("Assessments are informational and may be wrong.").havenText(.meta, color: theme.inkFaint)
+            Button { imageData = nil; photoItem = nil; camera.startIfPermitted() } label: {
+                Text("Retake").havenText(.meta, color: theme.inkSoft).frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
+            }
+            .disabled(busy)
         }
     }
 

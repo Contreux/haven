@@ -31,9 +31,10 @@ private struct ContentSizedSheet: ViewModifier {
 /// Bottom-sheet chrome for scrollable/dynamic content (e.g. the menu scanner) that can't size to content.
 private struct BottomSheetChrome: ViewModifier {
     @Environment(\.theme) private var theme
+    @State private var detent: PresentationDetent = .large   // open large so the camera has room
     func body(content: Content) -> some View {
         content
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.medium, .large], selection: $detent)
             .presentationCornerRadius(28)
             .presentationBackground(theme.bg)   // grabber comes from SheetHeader, so no system indicator
     }
