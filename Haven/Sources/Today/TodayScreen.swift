@@ -6,11 +6,14 @@ struct TodayScreen: View {
     @Environment(\.theme) private var theme
     @State private var store: TodayStore
     private let onLogger: (LoggerKind) -> Void
+    private let onSnapMeal: () -> Void
     private let onProfile: () -> Void
 
-    init(store: TodayStore, onLogger: @escaping (LoggerKind) -> Void, onProfile: @escaping () -> Void = {}) {
+    init(store: TodayStore, onLogger: @escaping (LoggerKind) -> Void,
+         onSnapMeal: @escaping () -> Void = {}, onProfile: @escaping () -> Void = {}) {
         _store = State(initialValue: store)
         self.onLogger = onLogger
+        self.onSnapMeal = onSnapMeal
         self.onProfile = onProfile
     }
 
@@ -29,7 +32,7 @@ struct TodayScreen: View {
                         }
                     }
                     FactorRings(factors: store.day?.factors) { onLogger(.factors) }
-                    ActionButtons(onLogMigraine: { onLogger(.migraine) }, onSnapMeal: { onLogger(.food) })
+                    ActionButtons(onLogMigraine: { onLogger(.migraine) }, onSnapMeal: onSnapMeal)
                     if let m = store.day?.migraine, m.had {
                         MigraineAlertCard(migraine: m)
                     }

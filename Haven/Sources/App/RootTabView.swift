@@ -8,6 +8,7 @@ struct RootTabView: View {
     @State private var store: TodayStore
     @State private var tab: Tab = .today
     @State private var activeSheet: LoggerKind?
+    @State private var foodMode: FoodCaptureSheet.Mode = .describe
     @State private var dialOpen = false
     @State private var showProfile = false
     var onDataDeleted: () -> Void = {}
@@ -22,7 +23,9 @@ struct RootTabView: View {
     var body: some View {
         Group {
             switch tab {
-            case .today: TodayScreen(store: store, onLogger: { activeSheet = $0 }, onProfile: { showProfile = true })
+            case .today: TodayScreen(store: store, onLogger: { activeSheet = $0 },
+                                     onSnapMeal: { foodMode = .camera; activeSheet = .food },
+                                     onProfile: { showProfile = true })
             case .calendar: CalendarScreen(store: store)
             case .insights: InsightsScreen(store: store)
             case .weather: WeatherScreen(weather: store.weather)
@@ -48,7 +51,9 @@ struct RootTabView: View {
         }
         .overlay(alignment: .bottom) {
             if dialOpen {
-                FanOverlay(items: loggerItems, onPick: { activeSheet = $0 }, onClose: { dialOpen = false })
+                FanOverlay(items: loggerItems,
+                           onPick: { if $0 == .food { foodMode = .describe }; activeSheet = $0 },
+                           onClose: { dialOpen = false })
             }
         }
     }
@@ -125,7 +130,8 @@ struct RootTabView: View {
         case .food: FoodCaptureSheet(
             analyze: { await store.analyze($0) },
             analyzeImage: { data, hint in await store.analyzeImage(imageBase64: data.base64EncodedString(), hint: hint) },
-            onSave: { food, imageData in await saveFood(food, imageData) })
+            onSave: { food, imageData in await saveFood(food, imageData) },
+            initialMode: foodMode)
         case .menu: MenuScanSheet(
             scanMenu: { data in await store.scanMenu(imageBase64: data.base64EncodedString()) },
             onLog: { food in try? await store.saveFood(food) })

@@ -9,21 +9,32 @@ struct FoodCaptureSheet: View {
     let analyze: (String) async -> AnalyzedFood
     let analyzeImage: (Data, String) async -> AnalyzedFood
     let onSave: (FoodEntry, Data?) async -> Void
+    var initialMode: Mode = .describe
 
-    enum Mode { case describe, photo }
-    @State private var mode: Mode = .describe
+    enum Mode: String { case describe = "Describe", photo = "Photo", camera = "Camera" }
+    @State private var mode: Mode
     @State private var desc = ""
     @State private var photoItem: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var busy = false
     @State private var saving = false
+    @State private var showCamera = false
     @State private var result: AnalyzedFood?
+
+    init(analyze: @escaping (String) async -> AnalyzedFood,
+         analyzeImage: @escaping (Data, String) async -> AnalyzedFood,
+         onSave: @escaping (FoodEntry, Data?) async -> Void,
+         initialMode: Mode = .describe) {
+        self.analyze = analyze; self.analyzeImage = analyzeImage; self.onSave = onSave
+        self.initialMode = initialMode
+        _mode = State(initialValue: initialMode)
+    }
 
     private var canAnalyze: Bool { mode == .describe ? desc.trimmingCharacters(in: .whitespaces).count > 1 : (imageData != nil || desc.count > 1) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.s5) {
-            SheetHeader(title: "Log food", subtitle: "Photo or describe what you ate")
+            SheetHeader(title: "Log food", subtitle: "Snap, choose a photo, or describe what you ate")
             if let result {
                 resultView(result)
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
@@ -37,20 +48,18 @@ struct FoodCaptureSheet: View {
 
     private var captureView: some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Segmented(options: ["Describe", "Photo"], selection: Binding(
-                get: { mode == .describe ? "Describe" : "Photo" },
-                set: { mode = $0 == "Photo" ? .photo : .describe }))
-            if mode == .describe {
+            Segmented(options: [Mode.describe.rawValue, Mode.photo.rawValue, Mode.camera.rawValue],
+                      selection: Binding(get: { mode.rawValue },
+                                         set: { mode = Mode(rawValue: $0) ?? .describe }))
+            switch mode {
+            case .describe:
                 TextField("Describe what you ate or drank…", text: $desc, axis: .vertical)
                     .lineLimit(3, reservesSpace: true)
                     .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
                     .havenText(.body, color: theme.ink)
-            } else {
+            case .photo:
                 PhotosPicker(selection: $photoItem, matching: .images) {
-                    HStack { Image(systemName: "camera"); Text("Add a photo").havenText(.meta, color: theme.ink) }
-                        .frame(maxWidth: .infinity).padding(.vertical, Spacing.s7)
-                        .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
-                        .foregroundStyle(theme.inkSoft)
+                    CaptureTile(icon: "photo.on.rectangle", label: imageData == nil ? "Choose a photo" : "Choose a different photo")
                 }
                 .onChange(of: photoItem) { _, item in
                     Task {
@@ -59,19 +68,23 @@ struct FoodCaptureSheet: View {
                         }
                     }
                 }
-                if imageData != nil {
-                    Text("Photo attached").havenText(.meta, color: theme.inkSoft)
-                    TextField("Optional: describe the meal…", text: $desc)
-                        .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
-                        .havenText(.body, color: theme.ink)
+                attachedBlock
+            case .camera:
+                Button { showCamera = true } label: {
+                    CaptureTile(icon: "camera.fill", label: imageData == nil ? "Take a photo" : "Retake photo")
                 }
+                .fullScreenCover(isPresented: $showCamera) {
+                    CameraPicker { data in if let data { imageData = ImageScaler.downscaledJPEG(data) } }
+                        .ignoresSafeArea()
+                }
+                attachedBlock
             }
             Button {
                 busy = true
                 Task {
                     let t0 = Date()
                     let r: AnalyzedFood
-                    if mode == .photo, let data = imageData {
+                    if let data = imageData {
                         r = await analyzeImage(data, desc)
                     } else {
                         let text = desc.isEmpty ? "the meal in the photo" : desc
@@ -92,6 +105,17 @@ struct FoodCaptureSheet: View {
             .accessibilityIdentifier("food-analyze")
             Text("Trigger assessments are informational and may be wrong.")
                 .havenText(.meta, color: theme.inkFaint)
+        }
+    }
+
+    /// Shown once an image is attached (photo or camera): confirmation + optional description.
+    @ViewBuilder private var attachedBlock: some View {
+        if imageData != nil {
+            Label("Photo attached", systemImage: "checkmark.circle.fill")
+                .havenText(.meta, color: theme.factorGood)
+            TextField("Optional: describe the meal…", text: $desc)
+                .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+                .havenText(.body, color: theme.ink)
         }
     }
 
@@ -154,5 +178,18 @@ struct FoodCaptureSheet: View {
     static func thinkingBeat(since start: Date, minimum: TimeInterval = 0.9) async {
         let remaining = minimum - Date().timeIntervalSince(start)
         if remaining > 0 { try? await Task.sleep(for: .seconds(remaining)) }
+    }
+}
+
+/// The tappable photo/camera tile used by the photo and camera modes.
+private struct CaptureTile: View {
+    @Environment(\.theme) private var theme
+    let icon: String
+    let label: String
+    var body: some View {
+        HStack(spacing: Spacing.s2) { Image(systemName: icon); Text(label).havenText(.meta, color: theme.ink) }
+            .frame(maxWidth: .infinity).padding(.vertical, Spacing.s7)
+            .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+            .foregroundStyle(theme.inkSoft)
     }
 }
