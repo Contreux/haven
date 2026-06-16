@@ -14,9 +14,9 @@ private struct PrimaryCTA: ViewModifier {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)   // .btn-block padding
             .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
-            // cta-shadow: 0 8px 26px -10px — the negative spread keeps it tight, so use a
-            // moderate blur rather than the full token radius (which has no SwiftUI equivalent).
-            .shadow(color: theme.ctaShadow.swiftUIColor, radius: 16, x: 0, y: 8)
+            // cta-shadow: 0 8px 26px -10px — the negative spread keeps it tight. SwiftUI has no
+            // spread, so use a small blur + low alpha to read as a drop shadow, not a glow.
+            .shadow(color: theme.ctaShadow.swiftUIColor.opacity(0.28), radius: 7, x: 0, y: 5)
             .opacity(isEnabled ? 1 : 0.45)
     }
 }

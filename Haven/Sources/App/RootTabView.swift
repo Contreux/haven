@@ -75,7 +75,7 @@ struct RootTabView: View {
                 .frame(width: 54, height: 54)
                 .overlay(Image(systemName: "plus").font(.system(size: 24, weight: .bold)).foregroundStyle(theme.ctaInk))
                 .rotationEffect(.degrees(dialOpen ? 45 : 0))
-                .shadow(color: theme.ctaShadow.swiftUIColor, radius: 14, x: 0, y: 8)
+                .shadow(color: theme.ctaShadow.swiftUIColor.opacity(0.28), radius: 7, x: 0, y: 5)
         }
         .frame(width: 60)
         .offset(y: -Spacing.s1)
