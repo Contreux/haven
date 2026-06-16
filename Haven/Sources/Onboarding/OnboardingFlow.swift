@@ -48,13 +48,15 @@ struct OnboardingFlow: View {
             SynthesisScreen(profile: buildProfile(answers), onNext: { go(.permWeather) })
         case .permWeather:
             PermWeatherScreen(onEnable: { Task { if let c = await loc.request() { lat = c.latitude; lon = c.longitude }; go(.permReminders) } },
-                              onSkip: { go(.permReminders) })
+                              onSkip: { go(.permReminders) },
+                              onBack: { back(.synthesis) })
         case .permReminders:
             // v1 ships free: skip the paywall and finish onboarding directly.
             // The `.paywall` case below is retained for v1.1 when subscriptions go live.
             PermRemindersScreen(time: $reminderTime,
                 onEnable: { Task { _ = await Reminders.enable(); Reminders.schedule(hour: 18, minute: 0); await finish(subscribed: false) } },
-                onSkip: { Task { await finish(subscribed: false) } })
+                onSkip: { Task { await finish(subscribed: false) } },
+                onBack: { back(.permWeather) })
         case .paywall:
             PaywallScreen(store: storeKit,
                 onSubscribe: { id in Task { await subscribe(id) } },
