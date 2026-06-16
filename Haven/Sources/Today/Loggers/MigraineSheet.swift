@@ -20,34 +20,30 @@ struct MigraineSheet: View {
     }
 
     var body: some View {
-        ZStack {
-            theme.bg.ignoresSafeArea()
-            VStack(alignment: .leading, spacing: Spacing.s5) {
-                SheetHeader(title: "Log a migraine", subtitle: "How is it right now?")
-                Text("SEVERITY").havenText(.eyebrow, color: theme.inkFaint)
-                Segmented(options: ["Mild", "Moderate", "Severe"], selection: $severity)
-                Text("NOTES").havenText(.eyebrow, color: theme.inkFaint)
-                TextEditor(text: $notes)
-                    .frame(height: 100).scrollContentBackground(.hidden)
-                    .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
-                    .havenText(.body, color: theme.ink)
-                Button {
-                    Task { await onSave(Migraine(had: true, severity: severity, time: TodayStore.nowHM(), notes: notes)); dismiss() }
-                } label: {
-                    Text("Save").havenText(.sectionHead, color: theme.ctaInk)
-                        .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                        .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
-                }
-                .accessibilityIdentifier("migraine-save")
-                if existing?.had == true {
-                    Button { Task { await onRemove(); dismiss() } } label: {
-                        Text("Remove migraine").havenText(.meta, color: theme.factorHigh)
-                            .frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
-                    }
-                }
-                Spacer()
+        VStack(alignment: .leading, spacing: Spacing.s5) {
+            SheetHeader(title: "Log a migraine", subtitle: "How is it right now?")
+            Text("SEVERITY").havenText(.eyebrow, color: theme.inkFaint)
+            Segmented(options: ["Mild", "Moderate", "Severe"], selection: $severity)
+            Text("NOTES").havenText(.eyebrow, color: theme.inkFaint)
+            TextEditor(text: $notes)
+                .frame(height: 100).scrollContentBackground(.hidden)
+                .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+                .havenText(.body, color: theme.ink)
+            Button {
+                Task { await onSave(Migraine(had: true, severity: severity, time: TodayStore.nowHM(), notes: notes)); dismiss() }
+            } label: {
+                Text("Save").havenText(.sectionHead, color: theme.ctaInk)
+                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
+                    .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
             }
-            .padding(Spacing.s6)
+            .accessibilityIdentifier("migraine-save")
+            if existing?.had == true {
+                Button { Task { await onRemove(); dismiss() } } label: {
+                    Text("Remove migraine").havenText(.meta, color: theme.factorHigh)
+                        .frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
+                }
+            }
         }
+        .padding(Spacing.s6)
     }
 }

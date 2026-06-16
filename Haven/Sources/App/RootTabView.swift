@@ -30,7 +30,15 @@ struct RootTabView: View {
         }
         .safeAreaInset(edge: .bottom) { bottomNav }   // insets content so nothing hides behind the bar
         .task { store.start() }
-        .sheet(item: $activeSheet) { kind in sheet(for: kind).environment(\.theme, theme) }
+        .sheet(item: $activeSheet) { kind in
+            Group {
+                // The menu scanner is scrollable/dynamic, so it uses a resizable bottom sheet;
+                // the other loggers size to their content.
+                if kind == .menu { sheet(for: kind).bottomSheetChrome() }
+                else { sheet(for: kind).contentSizedSheet() }
+            }
+            .environment(\.theme, theme)
+        }
         .fullScreenCover(isPresented: $showProfile) {
             if let service = store.source as? ConvexService {
                 ProfileScreen(source: service, onDataDeleted: { showProfile = false; onDataDeleted() })

@@ -21,19 +21,15 @@ struct FoodCaptureSheet: View {
     private var canAnalyze: Bool { mode == .describe ? desc.trimmingCharacters(in: .whitespaces).count > 1 : (imageData != nil || desc.count > 1) }
 
     var body: some View {
-        ZStack {
-            theme.bg.ignoresSafeArea()
-            VStack(alignment: .leading, spacing: Spacing.s5) {
-                SheetHeader(title: "Log food", subtitle: "Photo or describe what you ate")
-                if let result {
-                    resultView(result)
-                } else {
-                    captureView
-                }
-                Spacer()
+        VStack(alignment: .leading, spacing: Spacing.s5) {
+            SheetHeader(title: "Log food", subtitle: "Photo or describe what you ate")
+            if let result {
+                resultView(result)
+            } else {
+                captureView
             }
-            .padding(Spacing.s6)
         }
+        .padding(Spacing.s6)
     }
 
     private var captureView: some View {
