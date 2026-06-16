@@ -29,15 +29,21 @@ struct SummaryCard: View {
     let factors: Factors?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.s3) {
-            Text("Daily factors").havenText(.eyebrow, color: theme.inkFaint)
+        // Design: two labeled sections — Symptoms (friendly-label chips) then Daily factors.
+        VStack(alignment: .leading, spacing: Spacing.s5) {
             if !symptoms.isEmpty {
-                FlowChips(items: symptoms)
+                VStack(alignment: .leading, spacing: Spacing.s3) {
+                    Text("Symptoms").havenText(.eyebrow, color: theme.inkSoft)
+                    FlowChips(items: symptoms.map(SymptomCatalog.label(for:)))
+                }
             }
             if let f = factors {
-                let ws = f.weatherSensitive ? " · Felt weather-sensitive" : ""
-                Text("Sleep \(String(format: "%.1f", f.sleepHours))h · Stress \(f.stress.rawValue) · Water \(f.hydration.rawValue)\(ws)")
-                    .havenText(.body, color: theme.inkSoft)
+                let ws = f.weatherSensitive ? "  ·  Felt weather-sensitive" : ""
+                VStack(alignment: .leading, spacing: Spacing.s3) {
+                    Text("Daily factors").havenText(.eyebrow, color: theme.inkSoft)
+                    Text("Sleep \(String(format: "%.1f", f.sleepHours))h  ·  Stress \(f.stress.rawValue)  ·  Water \(f.hydration.rawValue)\(ws)")
+                        .havenText(.body, color: theme.inkSoft)
+                }
             }
         }
         .padding(Spacing.s5)
@@ -46,16 +52,18 @@ struct SummaryCard: View {
     }
 }
 
-/// Simple wrapping chip row.
+/// Wrapping chip row (.chip-s): base-size semibold ink on a chip-fill pill.
 struct FlowChips: View {
     @Environment(\.theme) private var theme
     let items: [String]
     var body: some View {
-        HStack(spacing: Spacing.s2) {
+        FlowLayout(spacing: Spacing.s2) {
             ForEach(items, id: \.self) { item in
-                Text(item).havenText(.meta, color: theme.ink)
+                Text(item).havenText(.chipName, color: theme.ink)
+                    .fixedSize()
                     .padding(.horizontal, Spacing.s4).padding(.vertical, Spacing.s2)
-                    .background(theme.chip, in: Capsule())
+                    // chip == surface in the dark theme; recess with the page bg so it reads on the card.
+                    .background(theme.bg, in: Capsule())
             }
         }
     }

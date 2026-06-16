@@ -38,7 +38,7 @@ public func buildLedger(from day: DayLog) -> [LedgerEntry] {
         entries.append(LedgerEntry(
             id: "symptoms-\(day.date)", kind: .symptoms, time: at,
             title: "Symptoms",
-            subtitle: day.symptoms.joined(separator: " · "),
+            subtitle: day.symptoms.map(SymptomCatalog.label(for:)).joined(separator: " · "),
             triggers: []))
     }
 

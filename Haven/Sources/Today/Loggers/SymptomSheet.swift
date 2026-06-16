@@ -2,22 +2,13 @@ import SwiftUI
 import HavenDesignSystem
 import HavenCore
 
-struct SymptomOption: Identifiable { let id: String; let label: String; let icon: String }
-
 struct SymptomSheet: View {
     @Environment(\.theme) private var theme
     @Environment(\.dismiss) private var dismiss
     let existing: [String]
     let onSave: ([String]) async -> Void
 
-    static let catalog: [SymptomOption] = [
-        .init(id: "light", label: "Light / glare", icon: "sun.max"),
-        .init(id: "eye", label: "Eye strain", icon: "eye"),
-        .init(id: "neck", label: "Neck pain", icon: "figure.stand"),
-        .init(id: "back", label: "Back pain", icon: "figure.walk"),
-        .init(id: "nausea", label: "Nausea", icon: "exclamationmark.bubble"),
-        .init(id: "sound", label: "Sound sensitivity", icon: "speaker.wave.2"),
-    ]
+    static let catalog = SymptomCatalog.all
 
     @State private var selected: Set<String>
     @State private var saving = false
