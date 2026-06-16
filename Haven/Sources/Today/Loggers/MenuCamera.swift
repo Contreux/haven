@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import AVFoundation
+import HavenDesignSystem
 
 /// Drives a live back-camera preview and still capture for the menu scanner.
 /// Session work runs on a private queue; published state is updated on the main queue.
@@ -69,6 +70,54 @@ extension MenuCameraModel: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         let data = photo.fileDataRepresentation()
         DispatchQueue.main.async { self.onPhoto?(data); self.onPhoto = nil }
+    }
+}
+
+/// A live viewfinder + round shutter, with graceful placeholders when the camera is
+/// unavailable or access is denied. The caller receives the raw photo data on capture.
+struct CameraViewfinder: View {
+    @Environment(\.theme) private var theme
+    @ObservedObject var camera: MenuCameraModel
+    var height: CGFloat = 360
+    var prompt: String = "Point your camera at the subject"
+    let onCapture: (Data) -> Void
+
+    private var live: Bool { camera.access == .granted && camera.ready }
+
+    var body: some View {
+        VStack(spacing: Spacing.s4) {
+            ZStack {
+                if live {
+                    CameraPreview(session: camera.session)
+                } else {
+                    RoundedRectangle(cornerRadius: Radius.lg).fill(theme.surface)
+                        .overlay(
+                            VStack(spacing: Spacing.s2) {
+                                Image(systemName: camera.access == .denied ? "video.slash" : "camera.viewfinder")
+                                    .font(.system(size: 28)).foregroundStyle(theme.inkFaint)
+                                Text(camera.access == .denied
+                                     ? "Camera access is off — enable it in Settings, or choose from your album."
+                                     : prompt)
+                                    .havenText(.meta, color: theme.inkFaint)
+                                    .multilineTextAlignment(.center).padding(.horizontal, Spacing.s6)
+                            })
+                }
+            }
+            .frame(height: height)
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
+            Button {
+                camera.capture { if let data = $0 { onCapture(data) } }
+            } label: {
+                ZStack {
+                    Circle().fill(theme.ctaBg).frame(width: 64, height: 64)
+                    Circle().stroke(theme.bg, lineWidth: 3).frame(width: 54, height: 54)
+                }
+            }
+            .disabled(!live)
+            .opacity(live ? 1 : 0.4)
+            .accessibilityIdentifier("camera-shutter")
+        }
     }
 }
 

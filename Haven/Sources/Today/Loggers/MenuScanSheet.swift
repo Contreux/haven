@@ -51,40 +51,9 @@ struct MenuScanSheet: View {
     // Live camera viewfinder with a shutter, plus an album fallback.
     private var cameraView: some View {
         VStack(spacing: Spacing.s4) {
-            ZStack {
-                if camera.access == .granted && camera.ready {
-                    CameraPreview(session: camera.session)
-                } else {
-                    RoundedRectangle(cornerRadius: Radius.lg).fill(theme.surface)
-                        .overlay(
-                            VStack(spacing: Spacing.s2) {
-                                Image(systemName: camera.access == .denied ? "video.slash" : "camera.viewfinder")
-                                    .font(.system(size: 28)).foregroundStyle(theme.inkFaint)
-                                Text(camera.access == .denied ? "Camera access is off — enable it in Settings, or choose from your album."
-                                                              : "Point your camera at the menu")
-                                    .havenText(.meta, color: theme.inkFaint)
-                                    .multilineTextAlignment(.center).padding(.horizontal, Spacing.s6)
-                            })
-                }
+            CameraViewfinder(camera: camera, height: 380, prompt: "Point your camera at the menu") { data in
+                imageData = ImageScaler.downscaledJPEG(data); camera.stop()
             }
-            .frame(height: 380)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
-            // Shutter
-            Button {
-                camera.capture { data in
-                    guard let data else { return }
-                    imageData = ImageScaler.downscaledJPEG(data)
-                    camera.stop()
-                }
-            } label: {
-                ZStack {
-                    Circle().fill(theme.ctaBg).frame(width: 64, height: 64)
-                    Circle().stroke(theme.bg, lineWidth: 3).frame(width: 54, height: 54)
-                }
-            }
-            .disabled(!(camera.access == .granted && camera.ready))
-            .opacity(camera.access == .granted && camera.ready ? 1 : 0.4)
-            .accessibilityIdentifier("menu-shutter")
             PhotosPicker(selection: $photoItem, matching: .images) {
                 HStack(spacing: Spacing.s2) { Image(systemName: "photo.on.rectangle"); Text("Choose from album").havenText(.meta, color: theme.ink) }
                     .foregroundStyle(theme.inkSoft)

@@ -9,54 +9,73 @@ struct FoodCaptureSheet: View {
     let analyze: (String) async -> AnalyzedFood
     let analyzeImage: (Data, String) async -> AnalyzedFood
     let onSave: (FoodEntry, Data?) async -> Void
-    var initialMode: Mode = .describe
+    var initialMode: Mode = .camera
 
-    enum Mode: String { case describe = "Describe", photo = "Photo", camera = "Camera" }
+    // Camera is first and the default, matching the scan-menu flow.
+    enum Mode: String { case camera = "Camera", photo = "Photo", describe = "Describe" }
+    @StateObject private var camera = MenuCameraModel()
     @State private var mode: Mode
     @State private var desc = ""
     @State private var photoItem: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var busy = false
     @State private var saving = false
-    @State private var showCamera = false
     @State private var result: AnalyzedFood?
 
     init(analyze: @escaping (String) async -> AnalyzedFood,
          analyzeImage: @escaping (Data, String) async -> AnalyzedFood,
          onSave: @escaping (FoodEntry, Data?) async -> Void,
-         initialMode: Mode = .describe) {
+         initialMode: Mode = .camera) {
         self.analyze = analyze; self.analyzeImage = analyzeImage; self.onSave = onSave
         self.initialMode = initialMode
         _mode = State(initialValue: initialMode)
     }
 
+    /// The live viewfinder should run only while the camera tab is the active capture step.
+    private var cameraActive: Bool { mode == .camera && imageData == nil && result == nil }
+    private func syncCamera() { if cameraActive { camera.startIfPermitted() } else { camera.stop() } }
+
     private var canAnalyze: Bool { mode == .describe ? desc.trimmingCharacters(in: .whitespaces).count > 1 : (imageData != nil || desc.count > 1) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.s5) {
-            SheetHeader(title: "Log food", subtitle: "Snap, choose a photo, or describe what you ate")
-            if let result {
-                resultView(result)
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
-            } else {
-                captureView
-                    .transition(.opacity)
+        ZStack {
+            theme.bg.ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: Spacing.s5) {
+                    SheetHeader(title: "Log food", subtitle: "Snap, choose a photo, or describe what you ate")
+                    if let result {
+                        resultView(result)
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    } else {
+                        captureView
+                            .transition(.opacity)
+                    }
+                }
+                .padding(Spacing.s6)
             }
         }
-        .padding(Spacing.s6)
+        .onAppear { syncCamera() }
+        .onDisappear { camera.stop() }
+        .onChange(of: mode) { _, _ in syncCamera() }
+        .onChange(of: imageData) { _, _ in syncCamera() }
+        .onChange(of: result) { _, _ in syncCamera() }
     }
 
     private var captureView: some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Segmented(options: [Mode.describe.rawValue, Mode.photo.rawValue, Mode.camera.rawValue],
+            Segmented(options: [Mode.camera.rawValue, Mode.photo.rawValue, Mode.describe.rawValue],
                       selection: Binding(get: { mode.rawValue },
-                                         set: { mode = Mode(rawValue: $0) ?? .describe }))
+                                         set: { mode = Mode(rawValue: $0) ?? .camera }))
             switch mode {
-            case .describe:
-                TextField("Describe what you ate or drank…", text: $desc, axis: .vertical)
-                    .lineLimit(3, reservesSpace: true)
-                    .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
-                    .havenText(.body, color: theme.ink)
+            case .camera:
+                if imageData == nil {
+                    CameraViewfinder(camera: camera, height: 320, prompt: "Point your camera at your meal") { data in
+                        imageData = ImageScaler.downscaledJPEG(data)
+                    }
+                } else {
+                    capturedPreview
+                    descField
+                }
             case .photo:
                 PhotosPicker(selection: $photoItem, matching: .images) {
                     CaptureTile(icon: "photo.on.rectangle", label: imageData == nil ? "Choose a photo" : "Choose a different photo")
@@ -69,16 +88,14 @@ struct FoodCaptureSheet: View {
                     }
                 }
                 attachedBlock
-            case .camera:
-                Button { showCamera = true } label: {
-                    CaptureTile(icon: "camera.fill", label: imageData == nil ? "Take a photo" : "Retake photo")
-                }
-                .fullScreenCover(isPresented: $showCamera) {
-                    CameraPicker { data in if let data { imageData = ImageScaler.downscaledJPEG(data) } }
-                        .ignoresSafeArea()
-                }
-                attachedBlock
+            case .describe:
+                TextField("Describe what you ate or drank…", text: $desc, axis: .vertical)
+                    .lineLimit(3, reservesSpace: true)
+                    .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+                    .havenText(.body, color: theme.ink)
             }
+            // The shutter is the action while the live viewfinder is up; otherwise show Analyze.
+            if !(mode == .camera && imageData == nil) {
             Button {
                 busy = true
                 Task {
@@ -103,20 +120,38 @@ struct FoodCaptureSheet: View {
             }
             .disabled(busy || !canAnalyze)
             .accessibilityIdentifier("food-analyze")
+            }
             Text("Trigger assessments are informational and may be wrong.")
                 .havenText(.meta, color: theme.inkFaint)
         }
     }
 
-    /// Shown once an image is attached (photo or camera): confirmation + optional description.
+    /// Captured-photo preview (camera mode) with a retake control.
+    @ViewBuilder private var capturedPreview: some View {
+        if let data = imageData, let img = UIImage(data: data) {
+            Image(uiImage: img).resizable().scaledToFill()
+                .frame(height: 280).frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
+            Button { imageData = nil } label: {
+                HStack(spacing: Spacing.s2) { Image(systemName: "arrow.counterclockwise"); Text("Retake").havenText(.meta, color: theme.inkSoft) }
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    /// Shown once a library photo is attached: confirmation + optional description.
     @ViewBuilder private var attachedBlock: some View {
         if imageData != nil {
             Label("Photo attached", systemImage: "checkmark.circle.fill")
                 .havenText(.meta, color: theme.factorGood)
-            TextField("Optional: describe the meal…", text: $desc)
-                .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
-                .havenText(.body, color: theme.ink)
+            descField
         }
+    }
+
+    private var descField: some View {
+        TextField("Optional: describe the meal…", text: $desc)
+            .padding(Spacing.s3).background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+            .havenText(.body, color: theme.ink)
     }
 
     private func resultView(_ r: AnalyzedFood) -> some View {
