@@ -51,5 +51,6 @@ public func buildLedger(from day: DayLog) -> [LedgerEntry] {
             triggers: []))
     }
 
-    return entries.sorted { $0.time < $1.time }
+    // Latest log first, so the most recent entry sits at the top of "Logged today".
+    return entries.sorted { $0.time > $1.time }
 }

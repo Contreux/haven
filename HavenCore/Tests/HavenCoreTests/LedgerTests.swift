@@ -16,7 +16,7 @@ import Testing
         #expect(buildLedger(from: day()).isEmpty)
     }
 
-    @Test func mergesAllTypesSortedByTime() {
+    @Test func mergesAllTypesSortedByTimeDescending() {
         let d = day(
             factors: Factors(sleepHours: 6.5, stress: .high, hydration: .low, weatherSensitive: true),
             factorsAt: "09:02",
@@ -25,9 +25,9 @@ import Testing
             foods: [FoodEntry(name: "Cheddar", time: "12:30", triggers: [])]
         )
         let entries = buildLedger(from: d)
-        #expect(entries.map(\.time) == ["09:02", "12:30", "14:40", "15:10"])
-        #expect(entries.first?.kind == .factors)
-        #expect(entries.last?.kind == .migraine)
+        #expect(entries.map(\.time) == ["15:10", "14:40", "12:30", "09:02"])
+        #expect(entries.first?.kind == .migraine)
+        #expect(entries.last?.kind == .factors)
     }
 
     @Test func migraineExcludedWhenNotHad() {
