@@ -12,8 +12,9 @@ struct SheetHeader: View {
                 .fill(theme.hairline).frame(width: 36, height: 4)
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, Spacing.s2)
-            Text(title).havenText(.sectionHead, color: theme.ink)
-            Text(subtitle).havenText(.meta, color: theme.inkSoft)
+            // Design: sheet titles are a serif heading (.sheet-title, 27px), not small sans.
+            Text(title).havenText(.cardTitle, color: theme.ink)
+            Text(subtitle).havenText(.body, color: theme.inkSoft)
         }
     }
 }
