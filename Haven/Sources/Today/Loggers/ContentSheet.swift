@@ -23,9 +23,8 @@ private struct ContentSizedSheet: ViewModifier {
             })
             .onPreferenceChange(SheetHeightKey.self) { height = $0 }
             .presentationDetents(height > 0 ? [.height(height)] : [.medium])
-            .presentationDragIndicator(.visible)
             .presentationCornerRadius(28)
-            .presentationBackground(theme.bg)
+            .presentationBackground(theme.bg)   // grabber comes from SheetHeader, so no system indicator
     }
 }
 
@@ -35,9 +34,8 @@ private struct BottomSheetChrome: ViewModifier {
     func body(content: Content) -> some View {
         content
             .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
             .presentationCornerRadius(28)
-            .presentationBackground(theme.bg)
+            .presentationBackground(theme.bg)   // grabber comes from SheetHeader, so no system indicator
     }
 }
 
