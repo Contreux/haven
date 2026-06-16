@@ -12,6 +12,8 @@ import type * as ai from "../ai.js";
 import type * as billing from "../billing.js";
 import type * as days from "../days.js";
 import type * as files from "../files.js";
+import type * as foodParse from "../foodParse.js";
+import type * as menuParse from "../menuParse.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as weather from "../weather.js";
@@ -27,6 +29,8 @@ declare const fullApi: ApiFromModules<{
   billing: typeof billing;
   days: typeof days;
   files: typeof files;
+  foodParse: typeof foodParse;
+  menuParse: typeof menuParse;
   seed: typeof seed;
   settings: typeof settings;
   weather: typeof weather;
