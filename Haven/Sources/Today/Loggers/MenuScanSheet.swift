@@ -61,9 +61,11 @@ struct MenuScanSheet: View {
                     withAnimation(.easeOut(duration: 0.3)) { result = scan }
                 }
             } label: {
-                HStack { if busy { ProgressView() }; Text(busy ? "Scanning" : "Scan menu").havenText(.sectionHead, color: theme.ctaInk) }
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                    .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                HStack(spacing: Spacing.s3) {
+                    if busy { ProgressView().tint(theme.ctaInk) }
+                    Text(busy ? "Scanning" : "Scan menu").havenText(.sectionHead, color: theme.ctaInk)
+                }
+                .primaryCTA()
             }
             .disabled(busy || imageData == nil)
             .accessibilityIdentifier("menu-scan")

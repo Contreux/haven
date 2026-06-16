@@ -90,12 +90,11 @@ struct SynthesisScreen: View {
                 .padding(.top, Spacing.s7)
             }
             Button(action: onNext) {
-                HStack(spacing: Spacing.s2) {
+                HStack(spacing: Spacing.s3) {
                     Text("Looks right").havenText(.sectionHead, color: theme.ctaInk)
                     Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(theme.ctaInk)
                 }
-                .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                .primaryCTA()
             }
             .accessibilityIdentifier("ob-synth-next")
             .padding(.horizontal, Spacing.s7)

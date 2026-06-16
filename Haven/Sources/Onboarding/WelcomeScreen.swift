@@ -15,9 +15,7 @@ struct WelcomeScreen: View {
                 Text("Haven turns your daily logs — meals, weather, sleep — into a clear, personal picture of what sets your attacks off.").havenText(.body, color: theme.inkSoft)
                 Spacer()
                 Button(action: onStart) {
-                    Text("Get started").havenText(.sectionHead, color: theme.ctaInk)
-                        .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                        .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                    Text("Get started").havenText(.sectionHead, color: theme.ctaInk).primaryCTA()
                 }.accessibilityIdentifier("ob-start")
                 Button(action: onSignIn) { Text("I already have an account").havenText(.meta, color: theme.inkSoft).frame(maxWidth: .infinity) }
             }.padding(Spacing.s7)

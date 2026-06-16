@@ -32,9 +32,7 @@ struct DoneScreen: View {
                     .padding(.top, Spacing.s5)
 
                 Button(action: onEnter) {
-                    Text("Enter Haven").havenText(.sectionHead, color: theme.ctaInk)
-                        .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                        .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                    Text("Enter Haven").havenText(.sectionHead, color: theme.ctaInk).primaryCTA()
                 }
                 .frame(maxWidth: 280)
                 .padding(.top, Spacing.s10)

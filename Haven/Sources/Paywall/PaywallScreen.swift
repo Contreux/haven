@@ -34,8 +34,7 @@ struct PaywallScreen: View {
                 Button { onSubscribe(plan) } label: {
                     Text(plan == "haven.yearly" ? "Start 7-day free trial" : "Subscribe weekly")
                         .havenText(.sectionHead, color: theme.ctaInk)
-                        .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                        .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                        .primaryCTA()
                 }.accessibilityIdentifier("pay-subscribe")
                 Text(plan == "haven.yearly" ? "7 days free, then $83.20/year. Cancel anytime." : "$12 per week. Cancel anytime.")
                     .havenText(.meta, color: theme.inkFaint)

@@ -101,12 +101,11 @@ private struct PermScaffold<Extra: View>: View {
 
             VStack(spacing: Spacing.s4) {
                 Button(action: onCta) {
-                    HStack(spacing: Spacing.s2) {
+                    HStack(spacing: Spacing.s3) {
                         if let ctaIcon { Image(systemName: ctaIcon).font(.system(size: 15, weight: .semibold)).foregroundStyle(theme.ctaInk) }
                         Text(cta).havenText(.sectionHead, color: theme.ctaInk)
                     }
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                    .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                    .primaryCTA()
                 }
                 .accessibilityIdentifier(ctaId)
                 Button(action: onSkip) { Text(skip).havenText(.meta, color: theme.inkSoft).frame(maxWidth: .infinity) }

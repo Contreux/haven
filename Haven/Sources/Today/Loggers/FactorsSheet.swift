@@ -47,12 +47,11 @@ struct FactorsSheet: View {
                     dismiss()
                 }
             } label: {
-                HStack(spacing: Spacing.s2) {
+                HStack(spacing: Spacing.s3) {
                     if saving { ProgressView().tint(theme.ctaInk) }
                     Text(saving ? "Saving" : "Save").havenText(.sectionHead, color: theme.ctaInk)
                 }
-                .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                .background(theme.ctaBg, in: RoundedRectangle(cornerRadius: Radius.lg))
+                .primaryCTA()
             }
             .disabled(saving)
             .accessibilityIdentifier("factors-save")

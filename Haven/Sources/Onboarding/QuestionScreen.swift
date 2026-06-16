@@ -39,12 +39,11 @@ struct QuestionScreen: View {
                     if q.layout == .grid { grid } else { list }
                 }
                 Button(action: onNext) {
-                    HStack(spacing: Spacing.s2) {
+                    HStack(spacing: Spacing.s3) {
                         Text("Continue").havenText(.sectionHead, color: theme.ctaInk)
                         Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(theme.ctaInk)
                     }
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                    .background(canNext ? theme.ctaBg : theme.surface, in: RoundedRectangle(cornerRadius: Radius.lg))
+                    .primaryCTA()
                 }.disabled(!canNext).accessibilityIdentifier("ob-next")
             }.padding(Spacing.s7)
         }
