@@ -85,8 +85,9 @@ private struct PermScaffold<Extra: View>: View {
             VStack(spacing: 0) {
                 Spacer(minLength: Spacing.s8)
                 ZStack {
-                    RadialGradient(colors: [theme.accent.opacity(0.18), .clear], center: .center, startRadius: 0, endRadius: 84)
-                        .frame(width: 130, height: 130)
+                    // frame must be ≥ 2×endRadius, else the still-opaque gradient is clipped into a square.
+                    RadialGradient(colors: [theme.accent.opacity(0.18), .clear], center: .center, startRadius: 0, endRadius: 95)
+                        .frame(width: 190, height: 190)
                     RoundedRectangle(cornerRadius: 28).fill(theme.surface).frame(width: 96, height: 96)
                         .overlay(Image(systemName: icon).font(.system(size: 40)).foregroundStyle(theme.accent))
                 }
