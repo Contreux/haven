@@ -16,14 +16,21 @@ struct QuestionScreen: View {
         ZStack {
             theme.bg.ignoresSafeArea()
             VStack(alignment: .leading, spacing: Spacing.s5) {
-                HStack(spacing: Spacing.s3) {
-                    Button(action: onBack) { Image(systemName: "chevron.left").foregroundStyle(theme.inkSoft) }
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(theme.track)
-                            Capsule().fill(theme.accent).frame(width: geo.size.width * CGFloat(index + 1) / CGFloat(total))
+                HStack(spacing: Spacing.s5) {
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left").font(.system(size: 15, weight: .semibold)).foregroundStyle(theme.ink)
+                            .frame(width: 34, height: 34)
+                            .background(theme.chip, in: RoundedRectangle(cornerRadius: 11))
+                    }
+                    // Segmented progress — one bar per question, filled up to the current step.
+                    HStack(spacing: 5) {
+                        ForEach(0..<total, id: \.self) { i in
+                            Capsule().fill(i <= index ? theme.accent : theme.track)
+                                .frame(maxWidth: .infinity).frame(height: 4)
                         }
-                    }.frame(height: Spacing.s1)
+                    }
+                    Text("\(index + 1)/\(total)").havenText(.meta, color: theme.inkFaint)
+                        .monospacedDigit().frame(width: 38, alignment: .trailing)
                 }
                 Text(q.kicker.uppercased()).havenText(.eyebrow, color: theme.accent)
                 Text(q.title).havenText(.screenTitle, color: theme.ink)
@@ -32,9 +39,12 @@ struct QuestionScreen: View {
                     if q.layout == .grid { grid } else { list }
                 }
                 Button(action: onNext) {
-                    Text("Next").havenText(.sectionHead, color: theme.ctaInk)
-                        .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
-                        .background(canNext ? theme.ctaBg : theme.surface, in: RoundedRectangle(cornerRadius: Radius.lg))
+                    HStack(spacing: Spacing.s2) {
+                        Text("Continue").havenText(.sectionHead, color: theme.ctaInk)
+                        Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(theme.ctaInk)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s5)
+                    .background(canNext ? theme.ctaBg : theme.surface, in: RoundedRectangle(cornerRadius: Radius.lg))
                 }.disabled(!canNext).accessibilityIdentifier("ob-next")
             }.padding(Spacing.s7)
         }
