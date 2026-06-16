@@ -16,13 +16,16 @@ struct TopBar: View {
             Spacer()
             HStack(spacing: Spacing.s2) {
                 if streak > 0 {
-                    HStack(spacing: Spacing.s2) {
-                        Image(systemName: "drop.fill").foregroundStyle(theme.accent)
-                        Text("\(streak)").havenText(.meta, color: theme.accent)
+                    // Flame + bold count on a streak-tinted rounded rect, sized to the icon buttons.
+                    // Asymmetric padding (11 / 13) balances the flame's optical weight, per the design.
+                    HStack(spacing: 5) {
+                        Image(systemName: "flame.fill").font(.system(size: 15)).foregroundStyle(theme.accent)
+                        Text("\(streak)").havenText(.sectionHead, color: theme.accent).fontWeight(.bold)
                     }
-                    .padding(.horizontal, Spacing.s4)
-                    .padding(.vertical, Spacing.s2)
-                    .background(theme.streakBg, in: Capsule())
+                    .padding(.leading, 11).padding(.trailing, 13)
+                    .frame(height: 38)
+                    .background(theme.streakBg, in: RoundedRectangle(cornerRadius: Radius.sm))
+                    .accessibilityIdentifier("streak")
                 }
                 iconButton("magnifyingglass")
                 iconButton("person", action: onProfile, id: "open-profile")
