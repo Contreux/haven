@@ -20,6 +20,8 @@ public struct TextStyle: Sendable {
 
     // Named styles (from HavenDesignSystem/README.md)
     public static let screenTitle = TextStyle(family: .serif, size: TypeScale.title, weight: .semibold, leading: Leading.tight, trackingEm: Tracking.tight)
+    /// Serif heading sized for inside a card (e.g. the profile class on the synthesis screen). Smaller than `screenTitle`.
+    public static let cardTitle   = TextStyle(family: .serif, size: 27, weight: .semibold, leading: Leading.tight, trackingEm: Tracking.snug)
     public static let riskWord    = TextStyle(family: .serif, size: TypeScale.display, weight: .semibold, leading: Leading.tight, trackingEm: Tracking.tight)
     public static let sectionHead = TextStyle(family: .sans, size: TypeScale.md, weight: .semibold, leading: Leading.snug, trackingEm: Tracking.snug)
     public static let body        = TextStyle(family: .sans, size: TypeScale.base, weight: .regular, leading: Leading.normal, trackingEm: 0)
