@@ -77,7 +77,7 @@ async function callOpenAIImageEdit(imageBase64: string, prompt: string): Promise
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("OPENAI_API_KEY not configured");
   const form = new FormData();
-  form.append("model", "gpt-image-1");
+  form.append("model", "gpt-image-2");   // latest image-edit model; far better menu-text fidelity than gpt-image-1
   form.append("prompt", prompt);
   form.append("quality", "high");
   form.append("n", "1");
