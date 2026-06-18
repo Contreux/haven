@@ -1,6 +1,5 @@
 import SwiftUI
 import PhotosUI
-import VisionKit
 import HavenDesignSystem
 import HavenCore
 
@@ -8,12 +7,15 @@ struct MenuScanSheet: View {
     @Environment(\.theme) private var theme
     let scanMenu: (Data) async -> MenuScan
 
+    struct CapturedPhoto: Identifiable { let id = UUID(); let image: UIImage }
+
+    @StateObject private var camera = MenuCameraModel()
     @State private var photoItem: PhotosPickerItem?
+    @State private var rawImage: CapturedPhoto?   // captured photo awaiting corner crop
     @State private var busy = false
     @State private var result: MenuScan?
     @State private var loaderStep = 0
     @State private var showBreakdown = false
-    @State private var showScanner = false
 
     private static let loaderSteps = ["Reading the menu…", "Spotting triggers…", "Annotating…"]
 
@@ -57,37 +59,9 @@ struct MenuScanSheet: View {
 
     private var captureView: some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            scanPromptView
-            Text("Assessments are informational and may be wrong.").havenText(.meta, color: theme.inkFaint)
-        }
-        // User taps to open the scanner; the AI scan runs automatically once they capture.
-        .fullScreenCover(isPresented: $showScanner) {
-            DocumentScanner { data in
-                if let data { runScan(ImageScaler.downscaledJPEG(data)) }
-            }
-            .ignoresSafeArea()
-        }
-    }
-
-    // Open the document scanner, with an album fallback.
-    private var scanPromptView: some View {
-        VStack(spacing: Spacing.s4) {
-            if VNDocumentCameraViewController.isSupported {
-                Button { showScanner = true } label: {
-                    VStack(spacing: Spacing.s2) {
-                        Image(systemName: "doc.viewfinder").font(.system(size: 30)).foregroundStyle(theme.accent)
-                        Text("Scan a menu").havenText(.sectionHead, color: theme.ink)
-                        Text("Line up the menu — the edges are detected and cropped automatically.")
-                            .havenText(.meta, color: theme.inkFaint).multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s8)
-                    .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.lg))
-                }
-                .accessibilityIdentifier("menu-scan")
-            } else {
-                Text("Document scanning needs a device camera. Choose a menu photo from your album instead.")
-                    .havenText(.meta, color: theme.inkFaint).multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s7)
+            // Live camera; capture a photo, then crop to the menu's corners.
+            CameraViewfinder(camera: camera, height: 380, prompt: "Point your camera at the menu") { data in
+                if let ui = UIImage(data: data)?.normalizedUp() { rawImage = CapturedPhoto(image: ui); camera.stop() }
             }
             PhotosPicker(selection: $photoItem, matching: .images) {
                 HStack(spacing: Spacing.s2) { Image(systemName: "photo.on.rectangle"); Text("Choose from album").havenText(.meta, color: theme.ink) }
@@ -95,11 +69,20 @@ struct MenuScanSheet: View {
             }
             .onChange(of: photoItem) { _, item in
                 Task {
-                    if let raw = try? await item?.loadTransferable(type: Data.self) {
-                        runScan(ImageScaler.downscaledJPEG(raw))
+                    if let raw = try? await item?.loadTransferable(type: Data.self),
+                       let ui = UIImage(data: raw)?.normalizedUp() {
+                        rawImage = CapturedPhoto(image: ui); camera.stop()
                     }
                 }
             }
+            Text("Assessments are informational and may be wrong.").havenText(.meta, color: theme.inkFaint)
+        }
+        .onAppear { camera.startIfPermitted() }
+        .onDisappear { camera.stop() }
+        .fullScreenCover(item: $rawImage) { captured in
+            MenuCropView(image: captured.image,
+                         onConfirm: { flat in rawImage = nil; runScan(ImageScaler.downscaledJPEG(flat.jpegData(compressionQuality: 0.9) ?? Data())) },
+                         onCancel: { rawImage = nil; camera.startIfPermitted() })
         }
     }
 
