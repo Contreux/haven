@@ -40,7 +40,15 @@ public struct MenuDish: Codable, Sendable, Equatable, Identifiable {
 
 public struct MenuScan: Codable, Sendable, Equatable {
     public let dishes: [MenuDish]
-    public init(dishes: [MenuDish]) { self.dishes = dishes }
+    public let annotatedUrl: String?   // OpenAI-annotated menu image; nil if unavailable
+    public init(dishes: [MenuDish], annotatedUrl: String? = nil) {
+        self.dishes = dishes; self.annotatedUrl = annotatedUrl
+    }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        dishes = (try? c.decode([MenuDish].self, forKey: .dishes)) ?? []
+        annotatedUrl = (try? c.decodeIfPresent(String.self, forKey: .annotatedUrl)) ?? nil
+    }
 
     public enum Lead: Sendable, Equatable { case canEat, cantEat }
 

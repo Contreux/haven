@@ -56,3 +56,21 @@ import Foundation
         MenuDish(name: name, verdict: v, triggers: t, reason: "")
     }
 }
+
+@Suite struct MenuScanAnnotatedTests {
+    @Test func decodesAnnotatedUrlWhenPresent() throws {
+        let json = #"{"annotatedUrl":"https://x/y.png","dishes":[]}"#.data(using: .utf8)!
+        let scan = try JSONDecoder().decode(MenuScan.self, from: json)
+        #expect(scan.annotatedUrl == "https://x/y.png")
+        #expect(scan.dishes.isEmpty)
+    }
+    @Test func annotatedUrlIsNilWhenAbsent() throws {
+        let json = #"{"dishes":[{"name":"Soup","verdict":"safe"}]}"#.data(using: .utf8)!
+        let scan = try JSONDecoder().decode(MenuScan.self, from: json)
+        #expect(scan.annotatedUrl == nil)
+        #expect(scan.dishes.count == 1)
+    }
+    @Test func defaultInitKeepsAnnotatedUrlNil() {
+        #expect(MenuScan(dishes: []).annotatedUrl == nil)
+    }
+}

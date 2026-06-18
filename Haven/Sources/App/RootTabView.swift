@@ -132,8 +132,7 @@ struct RootTabView: View {
             analyzeImage: { data, hint in await store.analyzeImage(imageBase64: data.base64EncodedString(), hint: hint) },
             onSave: { food, imageData in await saveFood(food, imageData) })
         case .menu: MenuScanSheet(
-            scanMenu: { data in await store.scanMenu(imageBase64: data.base64EncodedString()) },
-            onLog: { food in try? await store.saveFood(food) })
+            scanMenu: { data in await store.scanMenu(imageBase64: data.base64EncodedString()) })
         }
     }
     private func saveFood(_ food: FoodEntry, _ imageData: Data?) async {

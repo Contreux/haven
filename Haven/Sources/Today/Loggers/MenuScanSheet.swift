@@ -6,15 +6,16 @@ import HavenCore
 struct MenuScanSheet: View {
     @Environment(\.theme) private var theme
     let scanMenu: (Data) async -> MenuScan
-    let onLog: (FoodEntry) async -> Void
 
     @StateObject private var camera = MenuCameraModel()
     @State private var photoItem: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var busy = false
     @State private var result: MenuScan?
-    @State private var loggedDishes: Set<String> = []   // section keys of dishes already logged
-    @State private var loggingKey: String?              // section key currently being logged
+    @State private var loaderStep = 0
+    @State private var showBreakdown = false
+
+    private static let loaderSteps = ["Reading the menu…", "Spotting triggers…", "Annotating…"]
 
     var body: some View {
         ZStack {
@@ -22,7 +23,9 @@ struct MenuScanSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.s5) {
                     SheetHeader(title: "Scan menu", subtitle: "Photo a menu — see what's safe")
-                    if let result {
+                    if busy {
+                        stagedLoader
+                    } else if let result {
                         resultView(result)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     } else {
@@ -31,6 +34,23 @@ struct MenuScanSheet: View {
                     }
                 }
                 .padding(Spacing.s6)
+            }
+        }
+    }
+
+    private var stagedLoader: some View {
+        VStack(spacing: Spacing.s4) {
+            ProgressView().controlSize(.large).tint(theme.accent)
+            Text(Self.loaderSteps[loaderStep % Self.loaderSteps.count])
+                .havenText(.sectionHead, color: theme.ink)
+                .contentTransition(.opacity)
+            Text("This can take up to a minute.").havenText(.meta, color: theme.inkFaint)
+        }
+        .frame(maxWidth: .infinity).padding(.vertical, Spacing.s10)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(2.5))
+                withAnimation { loaderStep += 1 }
             }
         }
     }
@@ -85,11 +105,7 @@ struct MenuScanSheet: View {
                     withAnimation(.easeOut(duration: 0.3)) { result = scan }
                 }
             } label: {
-                HStack(spacing: Spacing.s3) {
-                    if busy { ProgressView().tint(theme.ctaInk) }
-                    Text(busy ? "Scanning" : "Scan menu").havenText(.sectionHead, color: theme.ctaInk)
-                }
-                .primaryCTA()
+                Text("Scan menu").havenText(.sectionHead, color: theme.ctaInk).primaryCTA()
             }
             .disabled(busy)
             .accessibilityIdentifier("menu-scan")
@@ -101,68 +117,69 @@ struct MenuScanSheet: View {
     }
 
     @ViewBuilder private func resultView(_ scan: MenuScan) -> some View {
-        if scan.dishes.isEmpty {
+        if let urlString = scan.annotatedUrl, let url = URL(string: urlString) {
+            VStack(alignment: .leading, spacing: Spacing.s4) {
+                Text("Annotated menu").havenText(.sectionHead, color: theme.ink)
+                ZoomableImage(url: url)
+                    .frame(maxWidth: .infinity).frame(height: 460)
+                    .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.lg))
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
+                if !scan.dishes.isEmpty {
+                    Button { withAnimation { showBreakdown.toggle() } } label: {
+                        HStack(spacing: Spacing.s2) {
+                            Text(showBreakdown ? "Hide text breakdown" : "See text breakdown").havenText(.meta, color: theme.accent)
+                            Image(systemName: showBreakdown ? "chevron.up" : "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(theme.accent)
+                        }
+                    }
+                    if showBreakdown { breakdownList(scan) }
+                }
+                redoButton
+                Text("Potential triggers vary by person. Ask staff if unsure.").havenText(.meta, color: theme.inkFaint)
+            }
+        } else if !scan.dishes.isEmpty {
+            VStack(alignment: .leading, spacing: Spacing.s4) {
+                Text("Couldn't annotate the image — here's the text breakdown.").havenText(.body, color: theme.inkSoft)
+                breakdownList(scan)
+                redoButton
+            }
+        } else {
             VStack(alignment: .leading, spacing: Spacing.s4) {
                 Text("Couldn't read that menu").havenText(.sectionHead, color: theme.ink)
                 Text("Try a clearer, well-lit photo of the menu text.").havenText(.body, color: theme.inkSoft)
                 redoButton
             }
-        } else {
-            let g = scan.grouped()
-            VStack(alignment: .leading, spacing: Spacing.s5) {
-                Text("\(scan.dishes.count) dishes · \(g.canEat.count) you can eat")
-                    .havenText(.meta, color: theme.inkSoft)
-                if g.lead == .cantEat {
-                    section("BEST TO AVOID", code: "avoid", g.cantEat)
-                    section("YOU CAN EAT", code: "eat", g.canEat)
-                } else {
-                    section("YOU CAN EAT", code: "eat", g.canEat)
-                    section("BEST TO AVOID", code: "avoid", g.cantEat)
-                }
-                redoButton
-                Text("Tap a dish to log it. Assessments are informational and may be wrong.")
-                    .havenText(.meta, color: theme.inkFaint)
+        }
+    }
+
+    // Read-only Safe/Caution/Avoid breakdown (no logging in v2).
+    @ViewBuilder private func breakdownList(_ scan: MenuScan) -> some View {
+        let g = scan.grouped()
+        VStack(alignment: .leading, spacing: Spacing.s4) {
+            if g.lead == .cantEat {
+                breakdownSection("BEST TO AVOID", g.cantEat)
+                breakdownSection("YOU CAN EAT", g.canEat)
+            } else {
+                breakdownSection("YOU CAN EAT", g.canEat)
+                breakdownSection("BEST TO AVOID", g.cantEat)
             }
         }
     }
 
-    @ViewBuilder private func section(_ title: String, code: String, _ dishes: [MenuDish]) -> some View {
+    @ViewBuilder private func breakdownSection(_ title: String, _ dishes: [MenuDish]) -> some View {
         if !dishes.isEmpty {
             Text(title).havenText(.eyebrow, color: theme.inkFaint)
-            // Key by section code + offset so duplicate dish names stay distinct rows.
-            ForEach(Array(dishes.enumerated()), id: \.offset) { index, dish in
-                let key = "\(code)-\(index)"
-                Button {
-                    guard loggingKey == nil, !loggedDishes.contains(key) else { return }
-                    loggingKey = key
-                    Task {
-                        await onLog(FoodEntry(name: dish.name, time: TodayStore.nowHM(),
-                                              triggers: dish.asTriggerChips(), note: "From menu scan", imageId: nil))
-                        loggingKey = nil
-                        loggedDishes.insert(key)
-                    }
-                } label: { dishRow(dish, logged: loggedDishes.contains(key), logging: loggingKey == key) }
-                .disabled(loggingKey != nil)
-                .accessibilityIdentifier("menu-\(code)-dish-\(index)")
-            }
+            ForEach(Array(dishes.enumerated()), id: \.offset) { _, dish in dishRow(dish) }
         }
     }
 
-    private func dishRow(_ dish: MenuDish, logged: Bool, logging: Bool) -> some View {
+    private func dishRow(_ dish: MenuDish) -> some View {
         HStack(alignment: .top, spacing: Spacing.s3) {
             Circle().fill(color(for: dish.verdict)).frame(width: 10, height: 10).padding(.top, Spacing.s2)
             VStack(alignment: .leading, spacing: Spacing.s1) {
-                HStack {
-                    Text(dish.name).havenText(.body, color: theme.ink)
-                    Spacer()
-                    if logging {
-                        ProgressView().controlSize(.small).tint(theme.inkSoft)
-                    } else if logged {
-                        Label("Logged", systemImage: "checkmark").havenText(.meta, color: theme.inkSoft)
-                    }
-                }
+                Text(dish.name).havenText(.body, color: theme.ink)
                 if !dish.reason.isEmpty { Text(dish.reason).havenText(.meta, color: theme.inkFaint) }
             }
+            Spacer()
         }
         .padding(Spacing.s4).frame(maxWidth: .infinity, alignment: .leading)
         .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
@@ -177,9 +194,69 @@ struct MenuScanSheet: View {
     }
 
     private var redoButton: some View {
-        Button { result = nil; imageData = nil; photoItem = nil; loggedDishes = [] } label: {
+        Button { result = nil; imageData = nil; photoItem = nil; showBreakdown = false; camera.startIfPermitted() } label: {
             Text("Scan another").havenText(.meta, color: theme.inkSoft)
                 .frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
         }
+    }
+}
+
+/// A pinch-to-zoom, pannable async image for inspecting the dense annotated menu.
+private struct ZoomableImage: View {
+    @Environment(\.theme) private var theme
+    let url: URL
+    @State private var scale: CGFloat = 1
+    @State private var lastScale: CGFloat = 1
+    @State private var offset: CGSize = .zero
+    @State private var lastOffset: CGSize = .zero
+
+    var body: some View {
+        GeometryReader { geo in
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFit()
+                        .scaleEffect(scale)
+                        .offset(offset)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .gesture(
+                            MagnificationGesture()
+                                .onChanged { scale = min(max(1, lastScale * $0), 5) }
+                                .onEnded { _ in
+                                    if scale <= 1.01 {
+                                        withAnimation { scale = 1; offset = .zero; lastOffset = .zero }
+                                    } else {
+                                        offset = clamp(offset, in: geo.size)
+                                        lastOffset = offset
+                                    }
+                                    lastScale = scale
+                                }
+                                .simultaneously(with:
+                                    DragGesture()
+                                        .onChanged {
+                                            guard scale > 1 else { return }
+                                            offset = clamp(CGSize(width: lastOffset.width + $0.translation.width,
+                                                                  height: lastOffset.height + $0.translation.height), in: geo.size)
+                                        }
+                                        .onEnded { _ in lastOffset = offset }
+                                )
+                        )
+                case .failure:
+                    Image(systemName: "photo").font(.system(size: 28)).foregroundStyle(theme.inkFaint)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                default:
+                    ProgressView().frame(width: geo.size.width, height: geo.size.height)
+                }
+            }
+        }
+        .clipped()
+    }
+
+    // Keep the zoomed image from being dragged completely off-screen.
+    private func clamp(_ o: CGSize, in size: CGSize) -> CGSize {
+        let maxX = max(0, (scale - 1) * size.width / 2)
+        let maxY = max(0, (scale - 1) * size.height / 2)
+        return CGSize(width: min(max(o.width, -maxX), maxX),
+                      height: min(max(o.height, -maxY), maxY))
     }
 }

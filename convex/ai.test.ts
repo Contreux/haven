@@ -1,7 +1,8 @@
 import { convexTest } from "convex-test";
-import { expect, test } from "vitest";
+import { describe, expect, it, test } from "vitest";
 import schema from "./schema";
 import { api } from "./_generated/api";
+import { firstImageBase64 } from "./ai";
 
 const modules = import.meta.glob("./**/*.ts");
 
@@ -18,4 +19,15 @@ test("analyzeFoodImage throws when no API key is configured", async () => {
   await expect(
     t.action(api.ai.analyzeFoodImage, { imageBase64: "QUJD" }),
   ).rejects.toThrow();
+});
+
+describe("firstImageBase64", () => {
+  it("returns the b64 string when present", () => {
+    expect(firstImageBase64({ data: [{ b64_json: "AAAA" }] })).toBe("AAAA");
+  });
+  it("returns null for empty/missing data", () => {
+    expect(firstImageBase64({ data: [] })).toBeNull();
+    expect(firstImageBase64({})).toBeNull();
+    expect(firstImageBase64({ data: [{ b64_json: "" }] })).toBeNull();
+  });
 });
