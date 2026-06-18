@@ -114,10 +114,18 @@ final class ConvexService: DayDataSource {
     }
 
     func scanMenu(imageBase64: String, suspected: [String]) async throws -> MenuScan {
+        // The scan takes ~60-110s, so we don't hold one long request: a mutation kicks off a
+        // scheduled action, and we subscribe to the result row until it leaves "pending".
         var args: [String: ConvexEncodable?] = ["imageBase64": imageBase64]
         if !suspected.isEmpty { args["suspected"] = suspected as [ConvexEncodable?] }
-        let result: MenuScan = try await client.action("ai:scanMenu", with: args)
-        return result
+        let scanId: String = try await client.mutation("menuScan:startMenuScan", with: args)
+
+        let publisher: AnyPublisher<MenuScanRow, ClientError> =
+            client.subscribe(to: "menuScan:getMenuScan", with: ["id": scanId], yielding: MenuScanRow.self)
+        for try await row in publisher.values where row.status != "pending" {
+            return MenuScan(dishes: row.dishes, annotatedUrl: row.annotatedUrl)
+        }
+        throw ClientError.InternalError(msg: "menu scan subscription ended without a result")
     }
 
     func fetchWeather(lat: Double, lon: Double) async throws -> Weather {
@@ -165,5 +173,20 @@ final class ConvexService: DayDataSource {
         let (respData, _) = try await URLSession.shared.upload(for: req, from: data)
         struct UploadResp: Decodable { let storageId: String }
         return try? JSONDecoder().decode(UploadResp.self, from: respData).storageId
+    }
+}
+
+/// The `menuScan:getMenuScan` row the client subscribes to while a scan runs.
+private struct MenuScanRow: Decodable {
+    let status: String                 // "pending" | "done" | "error"
+    let annotatedUrl: String?
+    let dishes: [MenuDish]
+
+    enum CodingKeys: String, CodingKey { case status, annotatedUrl, dishes }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        status = (try? c.decode(String.self, forKey: .status)) ?? "error"
+        annotatedUrl = try? c.decodeIfPresent(String.self, forKey: .annotatedUrl)
+        dishes = (try? c.decode([MenuDish].self, forKey: .dishes)) ?? []
     }
 }

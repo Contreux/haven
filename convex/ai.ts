@@ -1,5 +1,6 @@
 "use node";
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { parseAnalysis } from "./foodParse";
 import { parseMenuAnalysis } from "./menuParse";
@@ -76,7 +77,7 @@ async function callOpenAIImageEdit(imageBase64: string, prompt: string): Promise
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("OPENAI_API_KEY not configured");
   const form = new FormData();
-  form.append("model", "gpt-image-1");
+  form.append("model", "gpt-image-2");   // latest image-edit model; far better menu-text fidelity than gpt-image-1
   form.append("prompt", prompt);
   form.append("quality", "high");
   form.append("n", "1");
@@ -114,16 +115,19 @@ export const analyzeFoodImage = action({
   },
 });
 
-export const scanMenu = action({
-  args: { imageBase64: v.string(), suspected: v.optional(v.array(v.string())) },
-  handler: async (ctx, { imageBase64, suspected }) => {
-    const safeSuspected = (suspected ?? []).slice(0, 8).map((s) => s.slice(0, 24));
+// Long-running menu scan (~60-110s). Runs as a scheduled action (kicked off by the
+// menuScan:startMenuScan mutation) and writes the result back via menuScan:finishMenuScan,
+// so the client subscribes to the row instead of holding one long request open.
+export const runMenuScan = internalAction({
+  args: { scanId: v.id("menuScans"), imageBase64: v.string(), suspected: v.array(v.string()) },
+  handler: async (ctx, { scanId, imageBase64, suspected }) => {
+    const safeSuspected = suspected.slice(0, 8).map((s) => s.slice(0, 24));
     const focus =
       safeSuspected.length > 0
         ? `\n\nThe user especially suspects these trigger categories: ${safeSuspected.join(", ")}. Weight those higher when in doubt.`
         : ``;
 
-    // Annotated image (OpenAI) + structured fallback list (Claude), in parallel.
+    // Annotated image (OpenAI, with one retry) + structured fallback list (Claude), in parallel.
     const [annotatedUrl, dishes] = await Promise.all([
       annotateMenuImage(ctx, imageBase64, MENU_ANNOTATE_PROMPT + focus).catch((e) => {
         console.error("menu annotate failed:", e);
@@ -134,11 +138,26 @@ export const scanMenu = action({
         return [];
       }),
     ]);
-    return { annotatedUrl: annotatedUrl ?? undefined, dishes };
+    await ctx.runMutation(internal.menuScan.finishMenuScan, {
+      scanId,
+      status: "done",
+      annotatedUrl: annotatedUrl ?? undefined,
+      dishes,
+    });
   },
 });
 
+// One retry: gpt-image-1 occasionally errors mid-flight on a long high-quality edit.
 async function annotateMenuImage(ctx: any, imageBase64: string, prompt: string): Promise<string | null> {
+  try {
+    return await storeAnnotated(ctx, imageBase64, prompt);
+  } catch (e) {
+    console.error("menu annotate attempt 1 failed, retrying:", e);
+    return await storeAnnotated(ctx, imageBase64, prompt);
+  }
+}
+
+async function storeAnnotated(ctx: any, imageBase64: string, prompt: string): Promise<string | null> {
   const b64 = await callOpenAIImageEdit(imageBase64, prompt);
   if (!b64) return null;
   const blob = new Blob([Buffer.from(b64, "base64")], { type: "image/png" });

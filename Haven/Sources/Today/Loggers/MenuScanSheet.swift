@@ -7,9 +7,11 @@ struct MenuScanSheet: View {
     @Environment(\.theme) private var theme
     let scanMenu: (Data) async -> MenuScan
 
+    struct CapturedPhoto: Identifiable { let id = UUID(); let image: UIImage }
+
     @StateObject private var camera = MenuCameraModel()
     @State private var photoItem: PhotosPickerItem?
-    @State private var imageData: Data?
+    @State private var rawImage: CapturedPhoto?   // captured photo awaiting corner crop
     @State private var busy = false
     @State private var result: MenuScan?
     @State private var loaderStep = 0
@@ -57,22 +59,9 @@ struct MenuScanSheet: View {
 
     private var captureView: some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            if let data = imageData, let img = UIImage(data: data) {
-                capturedView(img)
-            } else {
-                cameraView
-            }
-            Text("Assessments are informational and may be wrong.").havenText(.meta, color: theme.inkFaint)
-        }
-        .onAppear { camera.startIfPermitted() }
-        .onDisappear { camera.stop() }
-    }
-
-    // Live camera viewfinder with a shutter, plus an album fallback.
-    private var cameraView: some View {
-        VStack(spacing: Spacing.s4) {
+            // Live camera; capture a photo, then crop to the menu's corners.
             CameraViewfinder(camera: camera, height: 380, prompt: "Point your camera at the menu") { data in
-                imageData = ImageScaler.downscaledJPEG(data); camera.stop()
+                if let ui = UIImage(data: data)?.normalizedUp() { rawImage = CapturedPhoto(image: ui); camera.stop() }
             }
             PhotosPicker(selection: $photoItem, matching: .images) {
                 HStack(spacing: Spacing.s2) { Image(systemName: "photo.on.rectangle"); Text("Choose from album").havenText(.meta, color: theme.ink) }
@@ -80,39 +69,32 @@ struct MenuScanSheet: View {
             }
             .onChange(of: photoItem) { _, item in
                 Task {
-                    if let raw = try? await item?.loadTransferable(type: Data.self) {
-                        imageData = ImageScaler.downscaledJPEG(raw); camera.stop()
+                    if let raw = try? await item?.loadTransferable(type: Data.self),
+                       let ui = UIImage(data: raw)?.normalizedUp() {
+                        rawImage = CapturedPhoto(image: ui); camera.stop()
                     }
                 }
             }
+            Text("Assessments are informational and may be wrong.").havenText(.meta, color: theme.inkFaint)
+        }
+        .onAppear { camera.startIfPermitted() }
+        .onDisappear { camera.stop() }
+        .fullScreenCover(item: $rawImage) { captured in
+            MenuCropView(image: captured.image,
+                         onConfirm: { flat in rawImage = nil; runScan(ImageScaler.downscaledJPEG(flat.jpegData(compressionQuality: 0.9) ?? Data())) },
+                         onCancel: { rawImage = nil; camera.startIfPermitted() })
         }
     }
 
-    // After a shot is taken or picked: preview + scan / retake.
-    private func capturedView(_ img: UIImage) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.s4) {
-            Image(uiImage: img).resizable().scaledToFill()
-                .frame(height: 320).frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
-            Button {
-                guard let data = imageData else { return }
-                busy = true
-                Task {
-                    let t0 = Date()
-                    let scan = await scanMenu(data)
-                    await FoodCaptureSheet.thinkingBeat(since: t0)
-                    busy = false
-                    withAnimation(.easeOut(duration: 0.3)) { result = scan }
-                }
-            } label: {
-                Text("Scan menu").havenText(.sectionHead, color: theme.ctaInk).primaryCTA()
-            }
-            .disabled(busy)
-            .accessibilityIdentifier("menu-scan")
-            Button { imageData = nil; photoItem = nil; camera.startIfPermitted() } label: {
-                Text("Retake").havenText(.meta, color: theme.inkSoft).frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
-            }
-            .disabled(busy)
+    // Kick off the AI scan as soon as a photo is captured/picked.
+    private func runScan(_ data: Data) {
+        busy = true
+        Task {
+            let t0 = Date()
+            let scan = await scanMenu(data)
+            await FoodCaptureSheet.thinkingBeat(since: t0)
+            busy = false
+            withAnimation(.easeOut(duration: 0.3)) { result = scan }
         }
     }
 
@@ -194,7 +176,7 @@ struct MenuScanSheet: View {
     }
 
     private var redoButton: some View {
-        Button { result = nil; imageData = nil; photoItem = nil; showBreakdown = false; camera.startIfPermitted() } label: {
+        Button { result = nil; photoItem = nil; showBreakdown = false } label: {
             Text("Scan another").havenText(.meta, color: theme.inkSoft)
                 .frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
         }
