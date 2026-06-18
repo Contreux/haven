@@ -17,6 +17,13 @@ const foodEntry = v.object({
   imageId: v.optional(v.id("_storage")),
 });
 
+export const menuDishValidator = v.object({
+  name: v.string(),
+  verdict: v.string(),
+  triggers: v.array(v.string()),
+  reason: v.string(),
+});
+
 export default defineSchema({
   days: defineTable({
     userId: v.string(),
@@ -53,4 +60,11 @@ export default defineSchema({
     lon: v.optional(v.number()),
     subscribed: v.optional(v.boolean()),
   }).index("by_user", ["userId"]),
+
+  // Async menu-scan jobs: the client subscribes to a row while a scheduled action fills it in.
+  menuScans: defineTable({
+    status: v.string(), // "pending" | "done"
+    annotatedUrl: v.optional(v.string()),
+    dishes: v.array(menuDishValidator),
+  }),
 });
