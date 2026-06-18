@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import VisionKit
 import HavenDesignSystem
 import HavenCore
 
@@ -7,13 +8,14 @@ struct MenuScanSheet: View {
     @Environment(\.theme) private var theme
     let scanMenu: (Data) async -> MenuScan
 
-    @StateObject private var camera = MenuCameraModel()
     @State private var photoItem: PhotosPickerItem?
     @State private var imageData: Data?
     @State private var busy = false
     @State private var result: MenuScan?
     @State private var loaderStep = 0
     @State private var showBreakdown = false
+    @State private var showScanner = false
+    @State private var didAutoOpen = false
 
     private static let loaderSteps = ["Reading the menu…", "Spotting triggers…", "Annotating…"]
 
@@ -60,19 +62,42 @@ struct MenuScanSheet: View {
             if let data = imageData, let img = UIImage(data: data) {
                 capturedView(img)
             } else {
-                cameraView
+                scanPromptView
             }
             Text("Assessments are informational and may be wrong.").havenText(.meta, color: theme.inkFaint)
         }
-        .onAppear { camera.startIfPermitted() }
-        .onDisappear { camera.stop() }
+        .onAppear {
+            // Open the document scanner straight away the first time (device only).
+            if !didAutoOpen, imageData == nil, VNDocumentCameraViewController.isSupported {
+                didAutoOpen = true; showScanner = true
+            }
+        }
+        .fullScreenCover(isPresented: $showScanner) {
+            DocumentScanner { data in
+                if let data { imageData = ImageScaler.downscaledJPEG(data) }
+            }
+            .ignoresSafeArea()
+        }
     }
 
-    // Live camera viewfinder with a shutter, plus an album fallback.
-    private var cameraView: some View {
+    // Re-open the document scanner, with an album fallback.
+    private var scanPromptView: some View {
         VStack(spacing: Spacing.s4) {
-            CameraViewfinder(camera: camera, height: 380, prompt: "Point your camera at the menu") { data in
-                imageData = ImageScaler.downscaledJPEG(data); camera.stop()
+            if VNDocumentCameraViewController.isSupported {
+                Button { showScanner = true } label: {
+                    VStack(spacing: Spacing.s2) {
+                        Image(systemName: "doc.viewfinder").font(.system(size: 30)).foregroundStyle(theme.accent)
+                        Text("Scan a menu").havenText(.sectionHead, color: theme.ink)
+                        Text("Line up the menu — the edges are detected and cropped automatically.")
+                            .havenText(.meta, color: theme.inkFaint).multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s8)
+                    .background(theme.surface, in: RoundedRectangle(cornerRadius: Radius.lg))
+                }
+            } else {
+                Text("Document scanning needs a device camera. Choose a menu photo from your album instead.")
+                    .havenText(.meta, color: theme.inkFaint).multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity).padding(.vertical, Spacing.s7)
             }
             PhotosPicker(selection: $photoItem, matching: .images) {
                 HStack(spacing: Spacing.s2) { Image(systemName: "photo.on.rectangle"); Text("Choose from album").havenText(.meta, color: theme.ink) }
@@ -81,18 +106,19 @@ struct MenuScanSheet: View {
             .onChange(of: photoItem) { _, item in
                 Task {
                     if let raw = try? await item?.loadTransferable(type: Data.self) {
-                        imageData = ImageScaler.downscaledJPEG(raw); camera.stop()
+                        imageData = ImageScaler.downscaledJPEG(raw)
                     }
                 }
             }
         }
     }
 
-    // After a shot is taken or picked: preview + scan / retake.
+    // After a scan or album pick: preview of the cropped menu + scan / retake.
     private func capturedView(_ img: UIImage) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s4) {
-            Image(uiImage: img).resizable().scaledToFill()
-                .frame(height: 320).frame(maxWidth: .infinity)
+            // scaledToFit so the full cropped menu is visible (what you scanned is what's sent).
+            Image(uiImage: img).resizable().scaledToFit()
+                .frame(maxWidth: .infinity).frame(maxHeight: 360)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.lg))
             Button {
                 guard let data = imageData else { return }
@@ -109,7 +135,7 @@ struct MenuScanSheet: View {
             }
             .disabled(busy)
             .accessibilityIdentifier("menu-scan")
-            Button { imageData = nil; photoItem = nil; camera.startIfPermitted() } label: {
+            Button { imageData = nil; photoItem = nil; showScanner = VNDocumentCameraViewController.isSupported } label: {
                 Text("Retake").havenText(.meta, color: theme.inkSoft).frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
             }
             .disabled(busy)
@@ -194,7 +220,7 @@ struct MenuScanSheet: View {
     }
 
     private var redoButton: some View {
-        Button { result = nil; imageData = nil; photoItem = nil; showBreakdown = false; camera.startIfPermitted() } label: {
+        Button { result = nil; imageData = nil; photoItem = nil; showBreakdown = false } label: {
             Text("Scan another").havenText(.meta, color: theme.inkSoft)
                 .frame(maxWidth: .infinity).padding(.vertical, Spacing.s4)
         }
