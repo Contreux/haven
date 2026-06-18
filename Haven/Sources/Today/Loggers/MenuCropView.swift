@@ -25,9 +25,18 @@ struct MenuCropView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             GeometryReader { geo in
-                let rect = Self.fittedRect(imageSize: image.size, in: geo.size)
+                // Inset the image into a padded area so the corner handles sit clear of the
+                // status bar / instruction (top) and the action buttons (bottom), and are
+                // all comfortably draggable to the image's true edges.
+                let area = CGRect(x: 24, y: 72,
+                                  width: max(1, geo.size.width - 48),
+                                  height: max(1, geo.size.height - 72 - 132))
+                let rect = Self.fittedRect(imageSize: image.size, in: area.size)
+                    .offsetBy(dx: area.minX, dy: area.minY)
                 ZStack(alignment: .topLeading) {
                     Image(uiImage: image).resizable().scaledToFit()
+                        .frame(width: rect.width, height: rect.height)
+                        .position(x: rect.midX, y: rect.midY)
                     quad(in: rect)
                     ForEach(0..<4, id: \.self) { i in
                         handle
@@ -38,12 +47,14 @@ struct MenuCropView: View {
                             )
                     }
                 }
+                .frame(width: geo.size.width, height: geo.size.height)
                 .coordinateSpace(name: "crop")
             }
             VStack {
                 Text("Drag the corners to the edges of the menu")
                     .havenText(.meta, color: .white)
                     .padding(.top, Spacing.s8)
+                    .allowsHitTesting(false)
                 Spacer()
                 HStack(spacing: Spacing.s4) {
                     Button(action: onCancel) {
